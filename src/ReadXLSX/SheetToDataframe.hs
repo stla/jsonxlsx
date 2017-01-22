@@ -35,13 +35,7 @@ textFromCellText (CellText s) = s
 cells = fst $ dfToCells df True
 coords = DM.keys cells
 
--- column headers (assuming there are)
--- peut être mieux de retourner [fst .. snd]
--- colrange :: (Int, Int)
--- colrange = (minimum x, maximum x)
---                         where x = map snd coords
 -- colheaders :: [Text] -- les headers pourraient être des nombres !
--- colheaders = map (\j -> textFromCellText . fromJust . _cellValue $ cells DM.! (1,j)) [fst colrange .. snd colrange]
 
 valueToString :: Value -> Maybe String
 valueToString value =
