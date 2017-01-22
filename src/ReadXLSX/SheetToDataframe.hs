@@ -30,7 +30,6 @@ funFromMap m = f
 -- Xlsx utilities
 textFromCellText :: CellValue -> Text
 textFromCellText (CellText s) = s
-                   -- where CellText s = cell
 
 -- get some cells
 cells = fst $ dfToCells df True
