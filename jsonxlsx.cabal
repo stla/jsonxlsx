@@ -1,0 +1,56 @@
+name:                jsonxlsx
+version:             0.1.0.0
+synopsis:            Simple project template from stack
+description:         Please see README.md
+homepage:            https://github.com/stla/jsonxlsx#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Stéphane Laurent
+maintainer:          laurent_step@yahoo.fr
+copyright:           2017 Stéphane Laurent
+category:            Spreadsheet
+build-type:          Simple
+cabal-version:       >=1.22
+extra-source-files:  README.md
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     WriteXLSX
+                     , WriteXLSX.DataframeToSheet
+                     , WriteXLSX.Empty
+                     , ReadXLSX
+                     , ReadXLSX.SheetToDataframe
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , xlsx
+                     , aeson == 1.0.2.1
+                     , dates == 0.2.2.1
+                     , regex-compat
+                     , containers == 0.5.7.1
+                     , text
+                     , lens
+                     , bytestring
+                     , unordered-containers == 0.2.7.2
+                     , vector == 0.11.0.0
+                     , time
+                     , insert-ordered-containers == 0.2.0.0
+                     , scientific == 0.3.4.10
+                     , extra
+
+executable json2xlsx
+  hs-source-dirs:      src-commandline
+  main-is:             MainWrite.hs
+  other-modules:
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , jsonxlsx
+                     , optparse-applicative == 0.13.0.0
+
+executable xlsx2json
+  hs-source-dirs:      src-commandline
+  main-is:             MainRead.hs
+  other-modules:
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , jsonxlsx
+                     , optparse-applicative == 0.13.0.0

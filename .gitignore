@@ -1,0 +1,7 @@
+.stack-work
+*.Rproj
+.Rproj.user
+.Rhistory
+tests_XLSXfiles
+haskell-ghc-mod.json
+dist
