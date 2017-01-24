@@ -3,17 +3,23 @@ module Main where
 import ReadXLSX
 import Options.Applicative
 import Data.Monoid ((<>))
+import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.Text as T
 
 data Arguments = Arguments
   { file :: String
-  , sheet :: String
+  , sheet :: Maybe String
   , colnames :: Bool }
 
 readXLSX :: Arguments -> IO()
-readXLSX (Arguments file sheet colnames) =
+readXLSX (Arguments file (Just sheet) colnames) =
   do
-    json <- read1 file sheet colnames
-    putStrLn json
+    json <- read1 file (T.pack sheet) colnames
+    L.putStrLn json
+readXLSX (Arguments file Nothing colnames) =
+  do
+    json <- readAll file colnames
+    L.putStrLn json
 
 run :: Parser Arguments
 run = Arguments
@@ -22,11 +28,11 @@ run = Arguments
          <> long "file"
          <> short 'f'
          <> help "XLSX file" )
-     <*> strOption
+     <*> optional (strOption
           ( metavar "SHEET"
          <> long "sheet"
          <> short 's'
-         <> help "Sheet name" )
+         <> help "Sheet name" ))
      <*>  switch
           ( long "header"
          <> help "Whether the sheet has column headers" )

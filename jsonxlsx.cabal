@@ -20,6 +20,8 @@ library
                      , WriteXLSX.Empty
                      , ReadXLSX
                      , ReadXLSX.SheetToDataframe
+                     , ReadXLSX.AllSheetsToJSON
+                     , ReadXLSX.ReadComments
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , xlsx
@@ -36,6 +38,7 @@ library
                      , insert-ordered-containers == 0.2.0.0
                      , scientific == 0.3.4.10
                      , extra
+                     , text-show
 
 executable json2xlsx
   hs-source-dirs:      src-commandline
@@ -45,6 +48,8 @@ executable json2xlsx
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
                      , optparse-applicative == 0.13.0.0
+                     , bytestring
+                     , text
 
 executable xlsx2json
   hs-source-dirs:      src-commandline
@@ -54,3 +59,5 @@ executable xlsx2json
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
                      , optparse-applicative == 0.13.0.0
+                     , bytestring
+                     , text

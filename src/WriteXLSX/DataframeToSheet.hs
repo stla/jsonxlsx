@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-} -- to use makeLenses
+-- {-# LANGUAGE FlexibleContexts #-}
+-- {-# LANGUAGE  RankNTypes #-}
 
 module WriteXLSX.DataframeToSheet (
     dfToCells
@@ -21,15 +23,32 @@ import Data.Maybe (fromJust)
 import Data.Aeson (decode)
 import Data.Aeson.Types (Value, Object, Array, Value(Number), Value(String), Value(Bool), Value(Array), Value(Null))
 import qualified Data.Aeson.Types as DAT
+import Data.Scientific (toRealFloat)
 import Data.HashMap.Lazy (keys)
 import qualified Data.HashMap.Lazy as DHL
-import Data.ByteString.Lazy.Internal (packChars)
+import Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy as BL
+import Data.ByteString.Lazy.Internal (unpackChars)
 import qualified Data.ByteString.Lazy.Internal as DBLI
 import qualified Data.Vector as DV
 import Text.Regex
 
+-- import qualified Text.Regex.Posix.ByteString.Lazy as RB
+-- import qualified Text.Regex.Posix as TRP
+-- import Data.Either.Extra
+-- import System.IO.Unsafe (unsafePerformIO)
+--
 makeLenses ''Comment
+--
+-- extractKeysByteString :: ByteString -> [ByteString]
+-- extractKeysByteString = f (TRP.makeRegex "\"([^:|^\\,]+)\":")
+--                               where f :: RB.Regex -> ByteString -> [ByteString]
+--                                     f regex json =
+--                                       case fromRight' (unsafePerformIO $ RB.regexec regex json) of
+--                                         Nothing -> []
+--                                         (Just (_, _, after, matched)) -> matched ++ (f regex after)
 
+-- ESSAYE CA Y'A PAS DE IO: https://hackage.haskell.org/package/regex-tdfa-1.2.2/docs/Text-Regex-TDFA-ByteString-Lazy.html
 
 extractKeys :: Regex -> String -> [String]
 extractKeys reg s =
@@ -41,10 +60,10 @@ extractKeys reg s =
 -- c'est à cause de la minuscule de include on dirait
 
 
-dfToColumns :: String -> ([Array], [Text])
+dfToColumns :: ByteString -> ([Array], [Text])
 dfToColumns df = (map (\key -> valueToArray $ fromJust $ DHL.lookup key dfObject) colnames, colnames)
-                   where dfObject = fromJust (decode $ packChars df :: Maybe Object)
-                         colnames = T.pack <$> extractKeys (mkRegex "\"([^:|^\\,]+)\":") df
+                   where dfObject = fromJust (decode df :: Maybe Object)
+                         colnames = T.pack <$> extractKeys (mkRegex "\"([^:|^\\,]+)\":") (unpackChars df)
 
 valueToArray :: Value -> Array
 valueToArray value = x
@@ -57,19 +76,19 @@ columnToExcelColumn column = DV.toList $ DV.map valueToCellValue column
 valueToCellValue :: Value -> Maybe CellValue
 valueToCellValue value =
     case value of
-        (Number x) -> Just (CellDouble (realToFrac x :: Double))
+        (Number x) -> Just (CellDouble (toRealFloat x))
         (String x) -> Just (CellText x)
         (Bool x) -> Just (CellBool x)
         Null -> Nothing
 
-commentsToExcelComments :: Array -> String -> [Maybe Comment]
+commentsToExcelComments :: Array -> Text -> [Maybe Comment]
 commentsToExcelComments column author = DV.toList $ DV.map (`valueToComment` author) column
 --                                          DV.map (\x -> valueToComment x author) column
 
-valueToComment :: Value -> String -> Maybe Comment
+valueToComment :: Value -> Text -> Maybe Comment
 valueToComment value author =
     case value of
-        (String x) -> Just $ set commentAuthor (T.pack author) $
+        (String x) -> Just $ set commentAuthor author $
                                set commentText (XlsxText x) emptyComment
         Null -> Nothing
 
@@ -84,7 +103,7 @@ valueToComment value author =
 -- je rajoute ncols pour ColumnWidths
 -- les widths sont peut-être auto pour les nombres et les dates (comme Excel 2003)
 
-dfToCells :: String -> Bool -> (CellMap, Int)
+dfToCells :: ByteString -> Bool -> (CellMap, Int)
 dfToCells df header = (DML.fromList $ concatMap f [1..ncols], ncols)
       where f j = map (\(i, maybeCell) -> ((i,j), set cellValue maybeCell emptyCell)) $
                         zip [1..length excelcol] excelcol
@@ -106,7 +125,7 @@ dfToCells df header = (DML.fromList $ concatMap f [1..ncols], ncols)
 -- j'ai jeté un oeil, Excel ajoute un borderdiagonal dans l'unique Border
 -- essaye _borderDiagonal = Just (BorderStyle {_borderStyleColor = Nothing, _borderStyleLine = Nothing})
 
-dfToSheet :: String -> Bool -> Worksheet
+dfToSheet :: ByteString -> Bool -> Worksheet
 dfToSheet df header = set wsColumns [widths] $ set wsCells cells emptyWorksheet
                         where (cells, ncols) = dfToCells df header
                               widths = ColumnsWidth {cwMin = 1,
@@ -114,7 +133,7 @@ dfToSheet df header = set wsColumns [widths] $ set wsCells cells emptyWorksheet
                                                      cwWidth = 10,
                                                      cwStyle = Nothing}
 
-dfToCellsWithComments :: String -> Bool -> String -> String -> CellMap
+dfToCellsWithComments :: ByteString -> Bool -> ByteString -> Text -> CellMap
 dfToCellsWithComments df header comments author = DML.fromList $ concatMap f [1..length dfCols]
       where f j = map (\(i, maybeCell, maybeComment) ->
                          ((i,j), set cellComment maybeComment $
@@ -132,6 +151,6 @@ dfToCellsWithComments df header comments author = DML.fromList $ concatMap f [1.
             (dfComments, _) = dfToColumns comments
 
 
-dfToSheetWithComments :: String -> Bool -> String -> String -> Worksheet
+dfToSheetWithComments :: ByteString -> Bool -> ByteString -> Text -> Worksheet
 dfToSheetWithComments df header comments author =
   set wsCells (dfToCellsWithComments df header comments author) emptyWorksheet
