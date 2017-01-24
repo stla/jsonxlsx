@@ -4,11 +4,11 @@ module ReadXLSX.SheetToDataframe
 import Codec.Xlsx
 import Data.Map (Map)
 import qualified Data.Map as DM
-import Data.Maybe (isJust, fromJust, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.IO as TLIO
+-- import qualified Data.Text.Lazy as TL
+-- import qualified Data.Text.Lazy.IO as TLIO
 import qualified TextShow as TS
 import qualified Data.Set as DS
 import Data.Aeson (encode)

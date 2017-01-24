@@ -11,25 +11,19 @@ module WriteXLSX.DataframeToSheet (
     ) where
 
 import WriteXLSX.Empty
--- import Codec.Xlsx (CellValue, Cell, Worksheet, Comment,
---                   CellValue(CellBool), CellValue(CellDouble), CellValue(CellText))
 import Codec.Xlsx.Types
 import Control.Lens
--- import qualified Data.ByteString.Lazy as L
 import qualified Data.Map.Lazy as DML
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Maybe (fromJust)
 import Data.Aeson (decode)
 import Data.Aeson.Types (Value, Object, Array, Value(Number), Value(String), Value(Bool), Value(Array), Value(Null))
-import qualified Data.Aeson.Types as DAT
 import Data.Scientific (toRealFloat)
 import Data.HashMap.Lazy (keys)
 import qualified Data.HashMap.Lazy as DHL
 import Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Lazy.Internal (unpackChars)
-import qualified Data.ByteString.Lazy.Internal as DBLI
 import qualified Data.Vector as DV
 import Text.Regex
 

@@ -7,9 +7,8 @@ import ReadXLSX.ReadComments
 -- import WriteXLSX
 -- import WriteXLSX.DataframeToSheet
 import Codec.Xlsx
--- import Data.Map (Map)
 import qualified Data.Map as DM
-import Data.Maybe (isJust, fromJust)
+import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.ByteString.Lazy (ByteString)
