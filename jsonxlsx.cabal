@@ -61,3 +61,14 @@ executable xlsx2json
                      , optparse-applicative == 0.13.0.0
                      , bytestring
                      , text
+
+executable getXLSXcomments
+  hs-source-dirs:      src-commandline
+  main-is:             MainReadComments.hs
+  other-modules:
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , jsonxlsx
+                     , optparse-applicative == 0.13.0.0
+                     , bytestring
+                     , text

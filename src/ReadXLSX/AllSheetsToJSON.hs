@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module ReadXLSX.AllSheetsToJSON
     where
-import ReadXLSX.SheetToDataframe
-import Codec.Xlsx
-import qualified Data.Map as DM
-import Data.Aeson (encode)
-import Data.ByteString.Lazy (ByteString)
+import           Codec.Xlsx
+import           Data.Aeson                (encode)
+import           Data.ByteString.Lazy      (ByteString)
+import qualified Data.Map                  as DM
+import           ReadXLSX.SheetToDataframe
 
 
 allSheetsToJSON :: Xlsx -> Bool -> ByteString

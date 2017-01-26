@@ -2,6 +2,7 @@
 module ReadXLSX.SheetToDataframe
     where
 import Codec.Xlsx
+import WriteXLSX.Empty
 import Data.Map (Map)
 import qualified Data.Map as DM
 import Data.Maybe (fromMaybe)
@@ -81,7 +82,7 @@ colheadersAsMap cells = DM.fromSet
 
 extractRow :: CellMap -> (Cell -> Value) -> Map Int Text -> Int -> InsOrdHashMap Text Value
 extractRow cells cellToValue headers i = DHSI.fromList $
-                               map (\j -> (headers DM.! j, cellToValue $ cells DM.! (i,j))) colrange
+                               map (\j -> (headers DM.! j, cellToValue $ fromMaybe emptyCell (DM.lookup (i,j) cells))) colrange
                              where colrange = [minimum colCoords .. maximum colCoords]
                                    colCoords = map snd $ DM.keys cells
 --
@@ -96,8 +97,8 @@ sheetToMapList cells cellToValue header = map (extractRow cells cellToValue head
                                                then
                                                 (colheadersAsMap  cells, 1)
                                                else
-                                                (DM.fromList $ map (\j -> (j, T.concat [T.pack "X", TS.showt j])) [1 .. ncols], 0)
-                             ncols = maximum colCoords - minimum colCoords + 1
+                                                (DM.fromList $ map (\j -> (j, T.concat [T.pack "X", TS.showt j])) [minimum colCoords .. maximum colCoords], 0)
+                             -- ncols = maximum colCoords - minimum colCoords + 1
                              colCoords = map snd keys
                              keys = DM.keys cells
 

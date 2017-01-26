@@ -2,9 +2,9 @@
 module ReadXLSX.ReadComments
   where
 import           Codec.Xlsx
-import qualified Data.Text  as T
-import Data.Aeson.Types (Value, Value(String), Value(Null))
-import Data.Aeson (encode)
+import           Data.Aeson       (encode)
+import           Data.Aeson.Types (Value, Value (String), Value (Null))
+import qualified Data.Text        as T
 
 commentTextAsValue :: XlsxText -> Value
 commentTextAsValue comment =
@@ -16,4 +16,4 @@ cellToCommentValue :: Cell -> Value
 cellToCommentValue cell =
   case _cellComment cell of
     Just comment -> commentTextAsValue $ _commentText comment
-    Nothing -> Null
+    Nothing      -> Null
