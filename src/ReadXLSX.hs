@@ -10,6 +10,7 @@ import Codec.Xlsx
 import qualified Data.Map as DM
 import Data.Maybe (fromJust, isJust)
 import Data.Text (Text)
+import Data.Either.Extra (fromRight')
 import qualified Data.Text as T
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as L
@@ -40,12 +41,28 @@ readFromFile file cellToValue sheetname header =
         --               TL.concat [TL.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
         --                          TL.fromStrict $ T.intercalate ", " sheets]
 
+
+readFromXlsx :: Xlsx -> (Cell -> Value) -> Text -> Bool -> ByteString
+readFromXlsx xlsx cellToValue sheetname header =
+  if DM.member sheetname mapSheets
+    then
+      sheetToDataframe (cleanCellMap . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname) cellToValue header
+    else
+      encode $
+        T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
+                  T.intercalate ", " sheets]
+    where mapSheets = DM.fromList $ _xlSheets xlsx
+          sheets = DM.keys mapSheets
+
 read1 :: FilePath -> Text -> Bool -> IO ByteString
-read1 file = readFromFile file cellToCellValue
+read1 file sheetname header = do
+  bs <- L.readFile file
+  let xlsx = toXlsx bs
+  let stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
+  return $ readFromXlsx xlsx (cellFormatter stylesheet) sheetname header
 
 readComments :: FilePath -> Text -> Bool -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
-
 
 readAll :: FilePath -> Bool -> IO ByteString
 readAll file header =

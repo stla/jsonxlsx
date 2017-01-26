@@ -2,7 +2,8 @@
 module ReadXLSX.SheetToDataframe
     where
 import Codec.Xlsx
-import WriteXLSX.Empty
+import WriteXLSX.Empty (emptyCell)
+import ExcelDates (intToDate)
 import Data.Map (Map)
 import qualified Data.Map as DM
 import Data.Maybe (fromMaybe)
@@ -23,22 +24,10 @@ import Data.Either.Extra
 -- for tests:
 import WriteXLSX
 import WriteXLSX.DataframeToSheet
+import qualified Data.ByteString.Lazy as L
 -- get some cells
 cells = fst $ dfToCells (packChars df) True
 coords = DM.keys cells
-
-
-
--- used for the headers only
-valueToText :: Value -> Maybe Text
-valueToText value =
-  case value of
-    (Number x) -> Just y
-      where y = if isRight z then TS.showt (fromRight' z) else TS.showt (fromLeft' z)
-            z = floatingOrInteger x :: Either Float Int
-    (String a) -> Just a
-    (Bool a) -> Just (TS.showt a)
-    Null -> Nothing
 
 -- faudrait un cellToValue qui gère les dates
 -- idée : cellToValue :: Cell -> Map Int (Maybe Int) -> Value
@@ -52,6 +41,10 @@ numFmtIdMapper :: StyleSheet -> Map Int (Maybe Int)
 numFmtIdMapper stylesheet = DM.fromList $ zip [0 .. length cellXfs -1] (_cellXfNumFmtId <$> cellXfs)
                             where cellXfs = _styleSheetCellXfs stylesheet
 
+-- Book1Walter: > numFmtIdMapper ss
+-- fromList [(0,Just 0),(1,Just 17),(2,Just 2),(3,Just 164)]
+-- => 17
+
 numFmtIdMapperFromXlsx :: Xlsx -> Map Int (Maybe Int)
 numFmtIdMapperFromXlsx xlsx = numFmtIdMapper (fromRight' $ (parseStyleSheet . _xlStyles) xlsx)
 
@@ -59,6 +52,57 @@ numFmtIdMapperFromXlsx xlsx = numFmtIdMapper (fromRight' $ (parseStyleSheet . _x
 -- le numfmt est défini dans _styleSheetNumFmts du StyleSheet
 -- comment je pourrais voir qu'il définit une date ? :-(
 -- tant pis tu regardes juste les standard
+
+isDate :: Cell -> StyleSheet -> Bool
+isDate cell stylesheet =
+  case _cellStyle cell of
+    Nothing -> False
+    Just x -> (numFmtIdMapper stylesheet DM.! x) `elem` [Just 14, Just 15, Just 16, Just 17]
+
+-- for tests:
+getXlsx :: FilePath -> IO Xlsx
+getXlsx file = do
+  bs <- L.readFile file
+  return $ toXlsx bs
+getWSheet :: FilePath -> IO Worksheet
+getWSheet file = do
+  xlsx <- getXlsx file
+  return $ snd $ head (_xlSheets xlsx)
+getStyleSheet :: FilePath -> IO StyleSheet
+getStyleSheet file = do
+    xlsx <- getXlsx file
+    let ss = parseStyleSheet $ _xlStyles xlsx
+    return $ fromRight minimalStyleSheet ss
+cellsexample :: IO CellMap
+cellsexample = do
+  ws <- getWSheet "./tests_XLSXfiles/Book1Walter.xlsx"
+  return $ _wsCells ws
+stylesheetexample :: IO StyleSheet
+stylesheetexample = getStyleSheet "./tests_XLSXfiles/Book1Walter.xlsx"
+
+-- dans ReadXLSX tu mets cellFormatter stylesheet au lieu de cellToValue :
+cellFormatter :: StyleSheet -> (Cell -> Value)
+cellFormatter stylesheet cell =
+  if isDate cell stylesheet
+    then
+      case _cellValue cell of
+        Just (CellDouble x) -> String (intToDate $ round x)
+        Nothing -> Null
+    else
+      cellToCellValue cell
+
+-- -------------------------------------------------------------------------
+-- used for the headers only
+valueToText :: Value -> Maybe Text
+valueToText value =
+  case value of
+    (Number x) -> Just y
+      where y = if isRight z then TS.showt (fromRight' z) else TS.showt (fromLeft' z)
+            z = floatingOrInteger x :: Either Float Int
+    (String a) -> Just a
+    (Bool a) -> Just (TS.showt a)
+    Null -> Nothing
+
 
 cellToCellValue :: Cell -> Value
 cellToCellValue cell =
