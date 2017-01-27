@@ -5,19 +5,25 @@ import Options.Applicative
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.ByteString.Lazy.Internal (packChars)
+import qualified Data.ByteString.Lazy.Char8 as L
+
 
 data Arguments = Arguments
   { df :: String
   , colnames :: Bool
   , comments :: Maybe String
   , author :: Maybe String
-  , outfile :: String }
+  , outfile :: String
+  , base64 :: Bool }
 
 -- FINALEMENT C PEUT ETRE MIEUX DE NE PAS UTILISER BYTESTRING
 -- (PUISQU IL Y A UN SEUL DECODE)
 writeXLSX :: Arguments -> IO()
-writeXLSX (Arguments df colnames Nothing _ outfile) = write1 (packChars df) colnames outfile
-writeXLSX (Arguments df colnames (Just comments) author outfile) =
+writeXLSX (Arguments df colnames Nothing _ outfile base64) =
+  do
+    bs <- write1 (packChars df) colnames outfile base64
+    L.putStrLn bs
+writeXLSX (Arguments df colnames (Just comments) author outfile _) =
   write2 (packChars df) colnames (packChars comments) (fmap T.pack author) outfile
 
 run :: Parser Arguments
@@ -47,6 +53,9 @@ run = Arguments
          <> short 'o'
          <> metavar "OUTPUT"
          <> help "Output file" )
+     <*>  switch
+          ( long "base64"
+         <> help "Whether to return base64 string" )
 
 main :: IO ()
 main = execParser opts >>= writeXLSX

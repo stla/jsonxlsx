@@ -15,14 +15,16 @@ import           Data.Time.Clock.POSIX
 import           WriteXLSX.DataframeToSheet
 import           WriteXLSX.Empty            (emptyFill, emptyStyleSheet,
                                              emptyXlsx, gray125Fill)
+import ByteStringToBase64
+
 -- just for the test:
 import Data.ByteString.Lazy.Internal (packChars)
 
-df = "{\"include\":[true,true,true,true,true,true],\"Petal.Width\":[0.22342,null,1.5,1.5,1.3,1.5],\"Species\":[\"setosa\",\"versicolor\",\"versicolor\",\"versicolor\",\"versicolor\",\"versicolor\"],\"Date\":[\"2017-01-14\",\"2017-01-15\",\"2017-01-16\",\"2017-01-17\",\"2017-01-18\",\"2017-01-19\"]}"
+df = packChars "{\"include\":[true,true,true,true,true,true],\"Petal.Width\":[0.22342,null,1.5,1.5,1.3,1.5],\"Species\":[\"setosa\",\"versicolor\",\"versicolor\",\"versicolor\",\"versicolor\",\"versicolor\"],\"Date\":[\"2017-01-14\",\"2017-01-15\",\"2017-01-16\",\"2017-01-17\",\"2017-01-18\",\"2017-01-19\"]}"
 
-comments = "{\"include\":[\"HELLO\",null,null,null,null,null],\"Petal.Width\":[null,null,null,null,null,null],\"Species\":[null,null,null,null,null,null],\"Date\":[null,null,null,null,null,null]}"
+comments = packChars "{\"include\":[\"HELLO\",null,null,null,null,null],\"Petal.Width\":[null,null,null,null,null,null],\"Species\":[null,null,null,null,null,null],\"Date\":[null,null,null,null,null,null]}"
 
-x = dfToCellsWithComments (packChars df) True (packChars comments) (T.pack "John")
+x = dfToCellsWithComments df True comments (T.pack "John")
 -- cells = dfToCells df
 -- ws = dfToSheet df
 
@@ -32,13 +34,17 @@ stylesheet = set styleSheetFills [emptyFill, gray125Fill] emptyStyleSheet
 -- même quand c'est pas file
 -- => à faire : DataframeToSheet avec Text et ByteString
 
-write1 :: ByteString -> Bool -> FilePath -> IO ()
-write1 jsondf header outfile = do
+write1 :: ByteString -> Bool -> FilePath -> Bool -> IO ByteString
+write1 jsondf header outfile base64 = do
   ct <- getPOSIXTime
   let ws = dfToSheet jsondf header
   let xlsx = def & atSheet "Sheet1" ?~ ws
   -- let xlsx = set xlStyles (renderStyleSheet stylesheet) $ set xlSheets [("Sheet1", ws)] emptyXlsx
-  L.writeFile outfile $ fromXlsx ct xlsx
+  let lbs = fromXlsx ct xlsx
+  w <- L.writeFile outfile lbs
+  if base64
+    then return $ L.fromStrict $ byteStringToBase64 (L.toStrict lbs) "xlsx"
+    else return L.empty
 
 -- comments as ByteString too ?
 write2 :: ByteString -> Bool -> ByteString -> Maybe Text -> FilePath -> IO ()

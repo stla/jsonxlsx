@@ -23,6 +23,7 @@ library
                      , ReadXLSX.AllSheetsToJSON
                      , ReadXLSX.ReadComments
                      , ExcelDates
+                     , ByteStringToBase64
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , xlsx
@@ -40,6 +41,8 @@ library
                      , scientific == 0.3.4.10
                      , extra
                      , text-show
+                     , base64-bytestring
+                     , mime-types
 
 executable json2xlsx
   hs-source-dirs:      src-commandline
