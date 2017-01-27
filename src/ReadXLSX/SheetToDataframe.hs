@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module ReadXLSX.SheetToDataframe
-    where
+  where
 import Codec.Xlsx
 import WriteXLSX.Empty (emptyCell)
 import ExcelDates (intToDate)
@@ -26,7 +26,7 @@ import WriteXLSX
 import WriteXLSX.DataframeToSheet
 import qualified Data.ByteString.Lazy as L
 -- get some cells
-cells = fst $ dfToCells (packChars df) True
+cells = fst $ dfToCells df True
 coords = DM.keys cells
 
 -- faudrait un cellToValue qui gère les dates

@@ -1,23 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 module ReadXLSX
     where
-import ReadXLSX.SheetToDataframe
-import ReadXLSX.AllSheetsToJSON
-import ReadXLSX.ReadComments
+import           ReadXLSX.AllSheetsToJSON
+import           ReadXLSX.ReadComments
+import           ReadXLSX.SheetToDataframe
 -- import WriteXLSX
 -- import WriteXLSX.DataframeToSheet
-import Codec.Xlsx
-import qualified Data.Map as DM
-import Data.Maybe (fromJust, isJust)
-import Data.Text (Text)
-import Data.Either.Extra (fromRight')
-import qualified Data.Text as T
-import Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy as L
+import           Codec.Xlsx
+import           Data.ByteString.Lazy      (ByteString)
+import qualified Data.ByteString.Lazy      as L
+import           Data.Either.Extra         (fromRight')
+import qualified Data.Map                  as DM
+import           Data.Maybe                (fromJust, isJust)
+import           Data.Text                 (Text)
+import qualified Data.Text                 as T
 -- import Data.Text.Lazy.Encoding (encodeUtf8)
 -- import qualified Data.Text.Lazy as TL
-import Control.Lens ((^?))
-import Data.Aeson (Value, encode)
+import           Control.Lens              ((^?))
+import           Data.Aeson                (Value, encode)
 
 cleanCellMap :: CellMap -> CellMap
 cleanCellMap cellmap = DM.filter (isJust . _cellValue) cellmap

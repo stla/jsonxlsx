@@ -1,14 +1,14 @@
-module Main where
-
-import ReadXLSX (readComments)
-import Options.Applicative
-import Data.Monoid ((<>))
+module Main
+  where
 import qualified Data.ByteString.Lazy.Char8 as L
-import qualified Data.Text as T
+import           Data.Monoid                ((<>))
+import qualified Data.Text                  as T
+import           Options.Applicative
+import           ReadXLSX                   (readComments)
 
 data Arguments = Arguments
-  { file :: String
-  , sheet :: String
+  { file     :: String
+  , sheet    :: String
   , colnames :: Bool }
 
 getComments :: Arguments -> IO()

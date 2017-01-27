@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-} -- to use makeLenses
+{-# LANGUAGE TemplateHaskell   #-}
 -- {-# LANGUAGE FlexibleContexts #-}
 -- {-# LANGUAGE  RankNTypes #-}
 
@@ -10,22 +10,25 @@ module WriteXLSX.DataframeToSheet (
     , dfToSheetWithComments
     ) where
 
-import WriteXLSX.Empty
-import Codec.Xlsx.Types
-import Control.Lens
-import qualified Data.Map.Lazy as DML
-import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Maybe (fromJust)
-import Data.Aeson (decode)
-import Data.Aeson.Types (Value, Object, Array, Value(Number), Value(String), Value(Bool), Value(Array), Value(Null))
-import Data.Scientific (toRealFloat)
-import Data.HashMap.Lazy (keys)
-import qualified Data.HashMap.Lazy as DHL
-import Data.ByteString.Lazy (ByteString)
-import Data.ByteString.Lazy.Internal (unpackChars)
-import qualified Data.Vector as DV
-import Text.Regex
+import           Codec.Xlsx.Types
+import           Control.Lens
+import           Data.Aeson                    (decode)
+import           Data.Aeson.Types              (Array, Object, Value,
+                                                Value (Number), Value (String),
+                                                Value (Bool), Value (Array),
+                                                Value (Null))
+import           Data.ByteString.Lazy          (ByteString)
+import           Data.ByteString.Lazy.Internal (unpackChars)
+import           Data.HashMap.Lazy             (keys)
+import qualified Data.HashMap.Lazy             as DHL
+import qualified Data.Map.Lazy                 as DML
+import           Data.Maybe                    (fromJust)
+import           Data.Scientific               (toRealFloat)
+import           Data.Text                     (Text)
+import qualified Data.Text                     as T
+import qualified Data.Vector                   as DV
+import           Text.Regex
+import           WriteXLSX.Empty
 
 -- import qualified Text.Regex.Posix.ByteString.Lazy as RB
 -- import qualified Text.Regex.Posix as TRP
@@ -47,7 +50,7 @@ makeLenses ''Comment
 extractKeys :: Regex -> String -> [String]
 extractKeys reg s =
   case matchRegexAll reg s of
-    Nothing -> []
+    Nothing                     -> []
     Just (_, _, after, matched) -> matched ++ extractKeys reg after
 
 -- problem: decode does not preserve order of keys
@@ -72,8 +75,8 @@ valueToCellValue value =
     case value of
         (Number x) -> Just (CellDouble (toRealFloat x))
         (String x) -> Just (CellText x)
-        (Bool x) -> Just (CellBool x)
-        Null -> Nothing
+        (Bool x)   -> Just (CellBool x)
+        Null       -> Nothing
 
 commentsToExcelComments :: Array -> Text -> [Maybe Comment]
 commentsToExcelComments column author = DV.toList $ DV.map (`valueToComment` author) column

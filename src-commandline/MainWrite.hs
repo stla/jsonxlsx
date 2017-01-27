@@ -1,5 +1,5 @@
-module Main where
-
+module Main
+  where
 import WriteXLSX
 import Options.Applicative
 import Data.Monoid ((<>))

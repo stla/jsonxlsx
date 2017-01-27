@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-module ByteStringToBase64 where
+module ByteStringToBase64
+  where
 import           Data.ByteString        (ByteString)
 import qualified Data.ByteString        as B
 import           Data.ByteString.Base64 (encode)

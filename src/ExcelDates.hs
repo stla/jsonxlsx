@@ -1,17 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- {-# LANGUAGE TemplateHaskell #-}
-module ExcelDates where
+module ExcelDates
+  where
 -- import Codec.Xlsx
 
-import Data.Dates
-import Data.Dates.Formats (parseDateFormat)
-import Data.Either.Extra (fromRight')
+import           Data.Dates
+import           Data.Dates.Formats (parseDateFormat)
+import           Data.Either.Extra  (fromRight')
 
 -- import Data.Maybe (fromJust)
-import qualified Data.Text as T
-import Data.Text (Text)
+import           Data.Text          (Text)
+import qualified Data.Text          as T
 -- import TextShow (showt)
-import Text.Printf (printf)
+import           Text.Printf        (printf)
 
 -- convert a date given as "YYYY/MM/DD" to its corresponding Excel number value
 excelDate :: String -> Double
