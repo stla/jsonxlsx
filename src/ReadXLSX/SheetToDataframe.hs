@@ -29,13 +29,7 @@ import qualified Data.ByteString.Lazy as L
 cells = fst $ dfToCells df True
 coords = DM.keys cells
 
--- faudrait un cellToValue qui gère les dates
--- idée : cellToValue :: Cell -> Map Int (Maybe Int) -> Value
--- avec "Map Int (Maybe Int)" qui map l'index du _styleSheetCellXfs sur son NumFmtId
---   dans Cell il y a cet index dans _cellStyle
--- ATTENDS y'a pas ça dans Codec.Xlsx.Formatted ?
---   ch'uis naze là mais ça m'a l'air plutôt pour Write
---  je reviens à mon truc:
+-- y'a pas ça dans Codec.Xlsx.Formatted ?
 -- si le NumFmtId correspond à une date je transforme
 numFmtIdMapper :: StyleSheet -> Map Int (Maybe Int)
 numFmtIdMapper stylesheet = DM.fromList $ zip [0 .. length cellXfs -1] (_cellXfNumFmtId <$> cellXfs)
@@ -48,7 +42,7 @@ numFmtIdMapper stylesheet = DM.fromList $ zip [0 .. length cellXfs -1] (_cellXfN
 numFmtIdMapperFromXlsx :: Xlsx -> Map Int (Maybe Int)
 numFmtIdMapperFromXlsx xlsx = numFmtIdMapper (fromRight' $ (parseStyleSheet . _xlStyles) xlsx)
 
--- problème numfmt customs, exemple dans Book1comments
+-- problème numfmt customs
 -- le numfmt est défini dans _styleSheetNumFmts du StyleSheet
 -- comment je pourrais voir qu'il définit une date ? :-(
 -- tant pis tu regardes juste les standard
@@ -142,7 +136,6 @@ sheetToMapList cells cellToValue header = map (extractRow cells cellToValue head
                                                 (colheadersAsMap  cells, 1)
                                                else
                                                 (DM.fromList $ map (\j -> (j, T.concat [T.pack "X", TS.showt j])) [minimum colCoords .. maximum colCoords], 0)
-                             -- ncols = maximum colCoords - minimum colCoords + 1
                              colCoords = map snd keys
                              keys = DM.keys cells
 

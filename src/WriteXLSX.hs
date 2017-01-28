@@ -30,9 +30,6 @@ x = dfToCellsWithComments df True comments (T.pack "John")
 
 stylesheet = set styleSheetFills [emptyFill, gray125Fill] emptyStyleSheet
 
--- faire un write from JSON file et utiliser ByteString
--- même quand c'est pas file
--- => à faire : DataframeToSheet avec Text et ByteString
 
 write1 :: ByteString -> Bool -> FilePath -> Bool -> IO ByteString
 write1 jsondf header outfile base64 = do
@@ -46,7 +43,6 @@ write1 jsondf header outfile base64 = do
     then return $ byteStringToBase64 lbs "xlsx"
     else return L.empty
 
--- comments as ByteString too ?
 write2 :: ByteString -> Bool -> ByteString -> Maybe Text -> FilePath -> Bool -> IO ByteString
 write2 jsondf header comments author outfile base64 = do
   ct <- getPOSIXTime
