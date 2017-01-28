@@ -20,7 +20,7 @@ import           Control.Lens              ((^?))
 import           Data.Aeson                (Value, encode)
 
 cleanCellMap :: CellMap -> CellMap
-cleanCellMap cellmap = DM.filter (isJust . _cellValue) cellmap
+cleanCellMap = DM.filter (isJust . _cellValue)
 
 readFromFile :: FilePath -> (Cell -> Value) -> Text -> Bool -> IO ByteString
 readFromFile file cellToValue sheetname header =
@@ -54,18 +54,25 @@ readFromXlsx xlsx cellToValue sheetname header =
     where mapSheets = DM.fromList $ _xlSheets xlsx
           sheets = DM.keys mapSheets
 
+getXlsxAndStyleSheet :: FilePath -> IO (Xlsx, StyleSheet)
+getXlsxAndStyleSheet file =
+  do
+    bs <- L.readFile file
+    let xlsx = toXlsx bs
+    let stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
+    return (xlsx, stylesheet)
+
 read1 :: FilePath -> Text -> Bool -> IO ByteString
 read1 file sheetname header = do
-  bs <- L.readFile file
-  let xlsx = toXlsx bs
-  let stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   return $ readFromXlsx xlsx (cellFormatter stylesheet) sheetname header
 
 readComments :: FilePath -> Text -> Bool -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
+-- TODO: cleanCellMap in readAll
 readAll :: FilePath -> Bool -> IO ByteString
 readAll file header =
   do
-    bs <- L.readFile file
-    return $ allSheetsToJSON (toXlsx bs) header
+    (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+    return $ allSheetsToJSON xlsx (cellFormatter stylesheet) header
