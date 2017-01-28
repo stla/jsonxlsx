@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module WriteXLSX.Empty
+module Empty
     where
 import Codec.Xlsx.Types -- (Cell, Worksheet, Comment, XlsxText)
 import qualified Data.Map.Lazy as DML
@@ -23,7 +23,8 @@ emptyWorksheet = Worksheet { _wsColumns = [],
                              _wsConditionalFormattings = DML.empty,
                              _wsDataValidations = DML.empty,
                              _wsPivotTables = [],
-                             _wsAutoFilter = Nothing }
+                             _wsAutoFilter = Nothing,
+                             _wsTables = [] }
 
 emptyComment = Comment { _commentText = XlsxText T.empty,
                          _commentAuthor = "",

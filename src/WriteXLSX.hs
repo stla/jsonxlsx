@@ -13,7 +13,7 @@ import Data.Text (Text)
 import           Data.Maybe                 (fromMaybe)
 import           Data.Time.Clock.POSIX
 import           WriteXLSX.DataframeToSheet
-import           WriteXLSX.Empty            (emptyFill, emptyStyleSheet,
+import           Empty            (emptyFill, emptyStyleSheet,
                                              emptyXlsx, gray125Fill)
 import ByteStringToBase64
 
@@ -43,7 +43,7 @@ write1 jsondf header outfile base64 = do
   let lbs = fromXlsx ct xlsx
   w <- L.writeFile outfile lbs
   if base64
-    then return $ L.fromStrict $ byteStringToBase64 (L.toStrict lbs) "xlsx"
+    then return $ byteStringToBase64 lbs "xlsx"
     else return L.empty
 
 -- comments as ByteString too ?

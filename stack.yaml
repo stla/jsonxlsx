@@ -39,7 +39,7 @@ packages:
 - '.'
 - location:
    git: https://github.com/qrilka/xlsx.git
-   commit: 420e16ca238df80f9bb226d3f9c065463ccdc3e2
+   commit: 3b453339a155ee5c7fcf8fcc75d1f9bdd891037b
   extra-dep: true
 
 # Dependency packages to be pulled from upstream that are not in the resolver

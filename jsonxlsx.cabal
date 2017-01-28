@@ -17,7 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     WriteXLSX
                      , WriteXLSX.DataframeToSheet
-                     , WriteXLSX.Empty
+                     , Empty
                      , ReadXLSX
                      , ReadXLSX.SheetToDataframe
                      , ReadXLSX.AllSheetsToJSON

@@ -2,7 +2,7 @@
 module ReadXLSX.SheetToDataframe
   where
 import Codec.Xlsx
-import WriteXLSX.Empty (emptyCell)
+import Empty (emptyCell)
 import ExcelDates (intToDate)
 import Data.Map (Map)
 import qualified Data.Map as DM

@@ -28,7 +28,7 @@ import           Data.Text                     (Text)
 import qualified Data.Text                     as T
 import qualified Data.Vector                   as DV
 import           Text.Regex
-import           WriteXLSX.Empty
+import           Empty
 
 -- import qualified Text.Regex.Posix.ByteString.Lazy as RB
 -- import qualified Text.Regex.Posix as TRP
