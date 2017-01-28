@@ -70,7 +70,7 @@ read1 file sheetname header = do
 readComments :: FilePath -> Text -> Bool -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
--- TODO: cleanCellMap in readAll
+-- TODO: cleanCellMap in readAll - or is it handled by allSheetsToJSON ?
 readAll :: FilePath -> Bool -> IO ByteString
 readAll file header =
   do

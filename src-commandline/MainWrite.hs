@@ -23,8 +23,10 @@ writeXLSX (Arguments df colnames Nothing _ outfile base64) =
   do
     bs <- write1 (packChars df) colnames outfile base64
     L.putStrLn bs
-writeXLSX (Arguments df colnames (Just comments) author outfile _) =
-  write2 (packChars df) colnames (packChars comments) (fmap T.pack author) outfile
+writeXLSX (Arguments df colnames (Just comments) author outfile base64) =
+  do
+    bs <- write2 (packChars df) colnames (packChars comments) (fmap T.pack author) outfile base64
+    L.putStrLn bs
 
 run :: Parser Arguments
 run = Arguments

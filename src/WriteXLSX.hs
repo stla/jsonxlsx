@@ -47,9 +47,13 @@ write1 jsondf header outfile base64 = do
     else return L.empty
 
 -- comments as ByteString too ?
-write2 :: ByteString -> Bool -> ByteString -> Maybe Text -> FilePath -> IO ()
-write2 jsondf header comments author outfile = do
+write2 :: ByteString -> Bool -> ByteString -> Maybe Text -> FilePath -> Bool -> IO ByteString
+write2 jsondf header comments author outfile base64 = do
   ct <- getPOSIXTime
   let ws = dfToSheetWithComments jsondf header comments (fromMaybe "unknown" author)
   let xlsx = def & atSheet "Sheet1" ?~ ws
-  L.writeFile outfile $ fromXlsx ct xlsx
+  let lbs = fromXlsx ct xlsx
+  w <- L.writeFile outfile lbs
+  if base64
+    then return $ byteStringToBase64 lbs "xlsx"
+    else return L.empty
