@@ -43,6 +43,7 @@ library
                      , text-show
                      , base64-bytestring
                      , mime-types
+                     , Unique
 
 executable json2xlsx
   hs-source-dirs:      src-commandline

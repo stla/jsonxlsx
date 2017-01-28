@@ -70,6 +70,25 @@ read1 file sheetname header = do
 readComments :: FilePath -> Text -> Bool -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
+-- ne pas retourner comments s'il n'y en a pas ?
+readDataAndComments :: FilePath -> Text -> Bool -> IO ByteString
+readDataAndComments file sheetname header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let mapSheets = DM.fromList $ _xlSheets xlsx
+  let sheets = DM.keys mapSheets
+  if DM.member sheetname mapSheets
+    then
+      return $ sheetToTwoDataframes
+                 (cleanCellMap . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname)
+                   "data" (cellFormatter stylesheet)
+                     "comments" cellToCommentValue header
+                       True
+    else
+      return $ encode $
+        T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
+                  T.intercalate ", " sheets]
+
+
 -- TODO: cleanCellMap in readAll - or is it handled by allSheetsToJSON ?
 readAll :: FilePath -> Bool -> IO ByteString
 readAll file header =

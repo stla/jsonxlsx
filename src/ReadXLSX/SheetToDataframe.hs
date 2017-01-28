@@ -21,6 +21,7 @@ import Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as DHSI
 import Data.ByteString.Lazy.Internal (unpackChars, packChars)
 import Data.Either.Extra
+import Data.List.UniqueUnsorted (count)
 -- for tests:
 import WriteXLSX
 import WriteXLSX.DataframeToSheet
@@ -123,9 +124,6 @@ extractRow cells cellToValue headers i = DHSI.fromList $
                                map (\j -> (headers DM.! j, cellToValue $ fromMaybe emptyCell (DM.lookup (i,j) cells))) colrange
                              where colrange = [minimum colCoords .. maximum colCoords]
                                    colCoords = map snd $ DM.keys cells
---
--- rows = map extractRow [2 .. rowmax]
---
 
 sheetToMapList :: CellMap -> (Cell -> Value) -> Bool -> [InsOrdHashMap Text Value]
 sheetToMapList cells cellToValue header = map (extractRow cells cellToValue headers) [firstRow+i .. lastRow]
@@ -144,3 +142,32 @@ sheetToDataframe :: CellMap -> (Cell -> Value) -> Bool -> ByteString
 sheetToDataframe cells cellToValue header = encode $ sheetToMapList cells cellToValue header
 
 test = sheetToDataframe cells cellToCellValue True
+
+-- Null Dataframe
+isNullDataframe :: [InsOrdHashMap Text Value] -> Bool
+isNullDataframe df = map fst (count (DHSI.elems (DHSI.unions df))) == [Null]
+-- plutôt que count: http://stackoverflow.com/questions/16108714/haskell-removing-duplicates-from-a-list
+--    http://stackoverflow.com/questions/3098391/unique-elements-in-a-haskell-list
+
+-- to read both values and comments
+sheetToTwoMapLists :: CellMap -> Text -> (Cell -> Value) -> Text -> (Cell -> Value) -> Bool -> Map Text [InsOrdHashMap Text Value]
+sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header =
+  DM.fromList [(key1, map (extractRow cells cellToValue1 headers) [firstRow+i .. lastRow]), (key2, map (extractRow cells cellToValue2 headers) [firstRow+i .. lastRow])]
+                       where (firstRow, lastRow) = (minimum rowCoords, maximum rowCoords)
+                             rowCoords = map fst keys
+                             (headers, i) = if header
+                                               then
+                                                (colheadersAsMap  cells, 1)
+                                               else
+                                                (DM.fromList $ map (\j -> (j, T.concat [T.pack "X", TS.showt j])) [minimum colCoords .. maximum colCoords], 0)
+                             colCoords = map snd keys
+                             keys = DM.keys cells
+
+-- toNull option to replace the dataframe with null if it contains only Null values
+sheetToTwoDataframes :: CellMap -> Text -> (Cell -> Value) -> Text -> (Cell -> Value) -> Bool -> Bool -> ByteString
+sheetToTwoDataframes cells key1 cellToValue1 key2 cellToValue2 header toNull =
+  encode $ if toNull then out else twoDataframes
+    where twoDataframes = sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header
+          out = if isNullDataframe df2 then DM.fromList [(key1, df1), (key2, [DHSI.empty])] else twoDataframes
+          df1 = twoDataframes DM.! key1
+          df2 = twoDataframes DM.! key2
