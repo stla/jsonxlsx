@@ -6,7 +6,7 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.ByteString.Lazy.Internal (packChars)
 import qualified Data.ByteString.Lazy.Char8 as L
-
+import Data.ByteString.Lazy.UTF8 (fromString)
 
 data Arguments = Arguments
   { df :: String
@@ -21,7 +21,7 @@ data Arguments = Arguments
 writeXLSX :: Arguments -> IO()
 writeXLSX (Arguments df colnames Nothing _ outfile base64) =
   do
-    bs <- write1 (packChars df) colnames outfile base64
+    bs <- write1 (fromString df) colnames outfile base64
     L.putStrLn bs
 writeXLSX (Arguments df colnames (Just comments) author outfile base64) =
   do

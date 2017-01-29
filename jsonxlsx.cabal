@@ -55,6 +55,7 @@ executable json2xlsx
                      , optparse-applicative == 0.13.0.0
                      , bytestring
                      , text
+                     , utf8-string
 
 executable xlsx2json
   hs-source-dirs:      src-commandline
