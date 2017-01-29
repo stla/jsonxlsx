@@ -150,16 +150,23 @@ isNullDataframe df = map fst (count (DHSI.elems (DHSI.unions df))) == [Null]
 --    http://stackoverflow.com/questions/3098391/unique-elements-in-a-haskell-list
 
 -- to read both values and comments
-nullifyOneDataframe :: Map Text [InsOrdHashMap Text Value] -> Text -> Map Text [InsOrdHashMap Text Value]
-nullifyOneDataframe dfs key = DM.adjust f key dfs
-  where f :: [InsOrdHashMap Text Value] -> [InsOrdHashMap Text Value]
-        f df = if isNullDataframe df then [DHSI.empty] else df
+-- MIEUX: Map Text (Maybe [InsOrdHashMap Text Value])
+-- ainsi avec Nothing j'aurai comments: null !!!
+-- nullifyOneDataframe :: Map Text [InsOrdHashMap Text Value] -> Text -> Map Text [InsOrdHashMap Text Value]
+-- nullifyOneDataframe dfs key = DM.adjust f key dfs
+--   where f :: [InsOrdHashMap Text Value] -> [InsOrdHashMap Text Value]
+--         f df = if isNullDataframe df then [DHSI.empty] else df
 
-sheetToTwoMapLists :: CellMap -> Text -> (Cell -> Value) -> Text -> (Cell -> Value) -> Bool -> Bool -> Map Text [InsOrdHashMap Text Value]
+nullifyOneDataframe :: Map Text (Maybe [InsOrdHashMap Text Value]) -> Text -> Map Text (Maybe [InsOrdHashMap Text Value])
+nullifyOneDataframe dfs key = DM.adjust f key dfs
+  where f :: Maybe [InsOrdHashMap Text Value] -> Maybe [InsOrdHashMap Text Value]
+        f (Just df) = if isNullDataframe df then Nothing else Just df
+
+sheetToTwoMapLists :: CellMap -> Text -> (Cell -> Value) -> Text -> (Cell -> Value) -> Bool -> Bool -> Map Text (Maybe [InsOrdHashMap Text Value])
 sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header toNull =
   if toNull then nullifyOneDataframe dfs key2 else dfs
     where dfs =
-            DM.fromList [(key1, map (extractRow cells cellToValue1 headers) [firstRow+i .. lastRow]), (key2, map (extractRow cells cellToValue2 headers) [firstRow+i .. lastRow])]
+            Just <$> DM.fromList [(key1, map (extractRow cells cellToValue1 headers) [firstRow+i .. lastRow]), (key2, map (extractRow cells cellToValue2 headers) [firstRow+i .. lastRow])]
                        where (firstRow, lastRow) = (minimum rowCoords, maximum rowCoords)
                              rowCoords = map fst keys
                              (headers, i) = if header
