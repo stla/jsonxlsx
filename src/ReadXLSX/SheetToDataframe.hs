@@ -150,9 +150,16 @@ isNullDataframe df = map fst (count (DHSI.elems (DHSI.unions df))) == [Null]
 --    http://stackoverflow.com/questions/3098391/unique-elements-in-a-haskell-list
 
 -- to read both values and comments
-sheetToTwoMapLists :: CellMap -> Text -> (Cell -> Value) -> Text -> (Cell -> Value) -> Bool -> Map Text [InsOrdHashMap Text Value]
-sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header =
-  DM.fromList [(key1, map (extractRow cells cellToValue1 headers) [firstRow+i .. lastRow]), (key2, map (extractRow cells cellToValue2 headers) [firstRow+i .. lastRow])]
+nullifyOneDataframe :: Map Text [InsOrdHashMap Text Value] -> Text -> Map Text [InsOrdHashMap Text Value]
+nullifyOneDataframe dfs key = DM.adjust f key dfs
+  where f :: [InsOrdHashMap Text Value] -> [InsOrdHashMap Text Value]
+        f df = if isNullDataframe df then [DHSI.empty] else df
+
+sheetToTwoMapLists :: CellMap -> Text -> (Cell -> Value) -> Text -> (Cell -> Value) -> Bool -> Bool -> Map Text [InsOrdHashMap Text Value]
+sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header toNull =
+  if toNull then nullifyOneDataframe dfs key2 else dfs
+    where dfs =
+            DM.fromList [(key1, map (extractRow cells cellToValue1 headers) [firstRow+i .. lastRow]), (key2, map (extractRow cells cellToValue2 headers) [firstRow+i .. lastRow])]
                        where (firstRow, lastRow) = (minimum rowCoords, maximum rowCoords)
                              rowCoords = map fst keys
                              (headers, i) = if header
@@ -166,8 +173,4 @@ sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header =
 -- toNull option to replace the dataframe with null if it contains only Null values
 sheetToTwoDataframes :: CellMap -> Text -> (Cell -> Value) -> Text -> (Cell -> Value) -> Bool -> Bool -> ByteString
 sheetToTwoDataframes cells key1 cellToValue1 key2 cellToValue2 header toNull =
-  encode $ if toNull then out else twoDataframes
-    where twoDataframes = sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header
-          out = if isNullDataframe df2 then DM.fromList [(key1, df1), (key2, [DHSI.empty])] else twoDataframes
-          df1 = twoDataframes DM.! key1
-          df2 = twoDataframes DM.! key2
+  encode (sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header toNull)

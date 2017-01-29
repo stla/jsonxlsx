@@ -94,4 +94,10 @@ readAll :: FilePath -> Bool -> IO ByteString
 readAll file header =
   do
     (xlsx, stylesheet) <- getXlsxAndStyleSheet file
-    return $ allSheetsToJSON xlsx (cellFormatter stylesheet) header
+    return $ allSheetsToDataframe xlsx (cellFormatter stylesheet) header
+
+readAllWithComments :: FilePath -> Bool -> IO ByteString
+readAllWithComments file header =
+  do
+    (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+    return $ allSheetsToTwoDataframes xlsx "data "(cellFormatter stylesheet) "comments" cellToCommentValue header True
