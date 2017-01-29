@@ -22,12 +22,15 @@ import           Data.Aeson                (Value, encode)
 cleanCellMap :: CellMap -> CellMap
 cleanCellMap = DM.filter (isJust . _cellValue)
 
+isNonEmptyWorksheet :: Worksheet -> Bool
+isNonEmptyWorksheet ws = cleanCellMap (_wsCells ws) /= DM.empty
+
 readFromFile :: FilePath -> (Cell -> Value) -> Text -> Bool -> IO ByteString
 readFromFile file cellToValue sheetname header =
   do
     bs <- L.readFile file
     let xlsx = toXlsx bs
-    let mapSheets = DM.fromList $ _xlSheets xlsx
+    let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
     if DM.member sheetname mapSheets
        then
          return $ sheetToDataframe (cleanCellMap . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname) cellToValue header
@@ -51,7 +54,7 @@ readFromXlsx xlsx cellToValue sheetname header =
       encode $
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
                   T.intercalate ", " sheets]
-    where mapSheets = DM.fromList $ _xlSheets xlsx
+    where mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
           sheets = DM.keys mapSheets
 
 getXlsxAndStyleSheet :: FilePath -> IO (Xlsx, StyleSheet)
@@ -74,7 +77,7 @@ readComments file = readFromFile file cellToCommentValue
 readDataAndComments :: FilePath -> Text -> Bool -> IO ByteString
 readDataAndComments file sheetname header = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
-  let mapSheets = DM.fromList $ _xlSheets xlsx
+  let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
   let sheets = DM.keys mapSheets
   if DM.member sheetname mapSheets
     then
