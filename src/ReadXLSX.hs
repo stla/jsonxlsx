@@ -73,6 +73,11 @@ read1 file sheetname header = do
 readComments :: FilePath -> Text -> Bool -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
+readTypes :: FilePath -> Text -> Bool -> IO ByteString
+readTypes file sheetname header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  return $ readFromXlsx xlsx (cellType stylesheet) sheetname header
+
 -- ne pas retourner comments s'il n'y en a pas ?
 readDataAndComments :: FilePath -> Text -> Bool -> IO ByteString
 readDataAndComments file sheetname header = do

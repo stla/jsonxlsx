@@ -6,7 +6,7 @@ import Empty (emptyCell)
 import ExcelDates (intToDate)
 import Data.Map (Map)
 import qualified Data.Map as DM
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Text (Text)
 import qualified Data.Text as T
 -- import qualified Data.Text.Lazy as TL
@@ -85,6 +85,16 @@ cellFormatter stylesheet cell =
         Nothing -> Null
     else
       cellToCellValue cell
+
+cellType :: StyleSheet -> (Cell -> Value)
+cellType stylesheet cell
+  | isNothing (_cellValue cell) = Null
+  | isDate cell stylesheet = String "date"
+  | otherwise =
+      case _cellValue cell of
+        Just (CellDouble x) -> String "number"
+        Just (CellText x) -> String "text"
+        Just (CellBool x) -> String "boolean"
 
 -- -------------------------------------------------------------------------
 -- used for the headers only
