@@ -94,9 +94,10 @@ cellType stylesheet cell
   | isDate cell stylesheet = String "date"
   | otherwise =
       case _cellValue cell of
-        Just (CellDouble x) -> String "number"
-        Just (CellText x) -> String "text"
-        Just (CellBool x) -> String "boolean"
+        Just (CellDouble _) -> String "number"
+        Just (CellText _) -> String "text"
+        Just (CellBool _) -> String "boolean"
+        Just (CellRich _) -> String "richtext"
 
 -- -------------------------------------------------------------------------
 -- used for the headers only
@@ -118,6 +119,7 @@ cellToCellValue cell =
     Just (CellText x) -> String x
     Just (CellBool x) -> Bool x
     Nothing -> Null
+    Just (CellRich x) -> String (T.concat $ _richTextRunText <$> x)
 
 
 colheadersAsMap :: CellMap -> Map Int Text
