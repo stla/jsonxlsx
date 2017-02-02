@@ -50,9 +50,10 @@ numFmtIdMapperFromXlsx xlsx = numFmtIdMapper (fromRight' $ (parseStyleSheet . _x
 
 isDate :: Cell -> StyleSheet -> Bool
 isDate cell stylesheet =
-  case _cellStyle cell of
-    Nothing -> False
-    Just x -> (numFmtIdMapper stylesheet DM.! x) `elem` [Just 14, Just 15, Just 16, Just 17]
+  case (_cellValue cell, _cellStyle cell) of
+--    (_, Nothing) -> False
+    (Just (CellDouble _), Just x) -> (numFmtIdMapper stylesheet DM.! x) `elem` [Just 14, Just 15, Just 16, Just 17]
+    (_, _) -> False
 
 -- for tests:
 getXlsx :: FilePath -> IO Xlsx
@@ -83,6 +84,7 @@ cellFormatter stylesheet cell =
       case _cellValue cell of
         Just (CellDouble x) -> String (intToDate $ round x)
         Nothing -> Null
+        _ -> String "anomalous date detected!" -- pb file Walter
     else
       cellToCellValue cell
 
