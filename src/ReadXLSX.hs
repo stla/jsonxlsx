@@ -25,6 +25,13 @@ cleanCellMap = DM.filter (isJust . _cellValue)
 isNonEmptyWorksheet :: Worksheet -> Bool
 isNonEmptyWorksheet ws = cleanCellMap (_wsCells ws) /= DM.empty
 
+getSheetnames :: FilePath -> IO ByteString
+getSheetnames file =
+  do
+    bs <- L.readFile file
+    return $ encode $ DM.keys (DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets (toXlsx bs)))
+
+
 readFromFile :: FilePath -> (Cell -> Value) -> Text -> Bool -> IO ByteString
 readFromFile file cellToValue sheetname header =
   do
