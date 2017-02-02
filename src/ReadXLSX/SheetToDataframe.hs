@@ -123,7 +123,8 @@ cellToCellValue cell =
 colheadersAsMap :: CellMap -> Map Int Text
 colheadersAsMap cells = DM.fromSet
                           (\j -> fromMaybe (T.concat [T.pack "X", TS.showt (j-firstCol+1)]) $
-                                   valueToText . cellToCellValue $ cells DM.! (firstRow,j))
+                                   valueToText . cellToCellValue $ -- cells DM.! (firstRow,j))
+                                     fromMaybe emptyCell (DM.lookup (firstRow, j) cells))
                             (DS.fromList colrange)
                         where colrange = [firstCol .. maximum colCoords]
                               colCoords = map snd keys
