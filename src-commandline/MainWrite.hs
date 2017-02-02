@@ -8,6 +8,7 @@ import Data.ByteString.Lazy.Internal (packChars)
 import qualified Data.ByteString.Lazy.Char8 as L
 import Data.ByteString.Lazy.UTF8 (fromString)
 
+
 data Arguments = Arguments
   { df :: String
   , colnames :: Bool
@@ -21,11 +22,11 @@ data Arguments = Arguments
 writeXLSX :: Arguments -> IO()
 writeXLSX (Arguments df colnames Nothing _ outfile base64) =
   do
-    bs <- write1 (fromString df) colnames outfile base64
+    bs <- write1 df colnames outfile base64
     L.putStrLn bs
 writeXLSX (Arguments df colnames (Just comments) author outfile base64) =
   do
-    bs <- write2 (packChars df) colnames (packChars comments) (fmap T.pack author) outfile base64
+    bs <- write2 df colnames comments (fmap T.pack author) outfile base64
     L.putStrLn bs
 
 run :: Parser Arguments

@@ -19,6 +19,7 @@ import           Data.Aeson.Types              (Array, Object, Value,
                                                 Value (Null))
 import           Data.ByteString.Lazy          (ByteString)
 import           Data.ByteString.Lazy.Internal (unpackChars)
+import Data.ByteString.Lazy.UTF8 (fromString)
 import           Data.HashMap.Lazy             (keys)
 import qualified Data.HashMap.Lazy             as DHL
 import qualified Data.Map.Lazy                 as DML
@@ -56,11 +57,14 @@ extractKeys reg s =
 -- problem: decode does not preserve order of keys
 -- c'est à cause de la minuscule de include on dirait
 
-
-dfToColumns :: ByteString -> ([Array], [Text])
+-- caution UTF-8
+dfToColumns :: String -> ([Array], [Text])
 dfToColumns df = (map (\key -> valueToArray $ fromJust $ DHL.lookup key dfObject) colnames, colnames)
-                   where dfObject = fromJust (decode df :: Maybe Object)
-                         colnames = T.pack <$> extractKeys (mkRegex "\"([^:|^\\,]+)\":") (unpackChars df)
+                   where dfObject = fromJust (decode (fromString df) :: Maybe Object)
+                         -- colnames = T.pack <$> extractKeys (mkRegex "\"([^:|^,]+)\":") df
+                         colnames = (fromJust . decode . fromString) <$>
+                                      map (\x -> "\"" ++ x ++ "\"") (extractKeys (mkRegex "\"([^:|^,]+)\":") df)
+                                        :: [Text]
 
 valueToArray :: Value -> Array
 valueToArray value = x
@@ -100,7 +104,7 @@ valueToComment value author =
 -- je rajoute ncols pour ColumnWidths
 -- les widths sont peut-être auto pour les nombres et les dates (comme Excel 2003)
 
-dfToCells :: ByteString -> Bool -> (CellMap, Int)
+dfToCells :: String -> Bool -> (CellMap, Int)
 dfToCells df header = (DML.fromList $ concatMap f [1..ncols], ncols)
       where f j = map (\(i, maybeCell) -> ((i,j), set cellValue maybeCell emptyCell)) $
                         zip [1..length excelcol] excelcol
@@ -122,7 +126,7 @@ dfToCells df header = (DML.fromList $ concatMap f [1..ncols], ncols)
 -- j'ai jeté un oeil, Excel ajoute un borderdiagonal dans l'unique Border
 -- essaye _borderDiagonal = Just (BorderStyle {_borderStyleColor = Nothing, _borderStyleLine = Nothing})
 
-dfToSheet :: ByteString -> Bool -> Worksheet
+dfToSheet :: String -> Bool -> Worksheet
 dfToSheet df header = set wsColumns [widths] $ set wsCells cells emptyWorksheet
                         where (cells, ncols) = dfToCells df header
                               widths = ColumnsWidth {cwMin = 1,
@@ -130,7 +134,7 @@ dfToSheet df header = set wsColumns [widths] $ set wsCells cells emptyWorksheet
                                                      cwWidth = 10,
                                                      cwStyle = Nothing}
 
-dfToCellsWithComments :: ByteString -> Bool -> ByteString -> Text -> CellMap
+dfToCellsWithComments :: String -> Bool -> String -> Text -> CellMap
 dfToCellsWithComments df header comments author = DML.fromList $ concatMap f [1..length dfCols]
       where f j = map (\(i, maybeCell, maybeComment) ->
                          ((i,j), set cellComment maybeComment $
@@ -148,6 +152,6 @@ dfToCellsWithComments df header comments author = DML.fromList $ concatMap f [1.
             (dfComments, _) = dfToColumns comments
 
 
-dfToSheetWithComments :: ByteString -> Bool -> ByteString -> Text -> Worksheet
+dfToSheetWithComments :: String -> Bool -> String -> Text -> Worksheet
 dfToSheetWithComments df header comments author =
   set wsCells (dfToCellsWithComments df header comments author) emptyWorksheet
