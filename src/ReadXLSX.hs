@@ -38,15 +38,15 @@ getSheetnames file =
     return $ encode $ DM.keys (DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets (toXlsx bs)))
 
 
-readFromFile :: FilePath -> (Cell -> Value) -> Text -> Bool -> IO ByteString
-readFromFile file cellToValue sheetname header =
+readFromFile :: FilePath -> (Cell -> Value) -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
+readFromFile file cellToValue sheetname header firstRow lastRow =
   do
     bs <- L.readFile file
     let xlsx = toXlsx bs
     let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
     if DM.member sheetname mapSheets
        then
-         return $ sheetToDataframe (cleanCellMap . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname) cellToValue header
+         return $ sheetToDataframe (filterCellMap firstRow lastRow . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname) cellToValue header
        else
          return $ let sheets = DM.keys mapSheets in
                     encode $
@@ -58,11 +58,11 @@ readFromFile file cellToValue sheetname header =
         --                          TL.fromStrict $ T.intercalate ", " sheets]
 
 
-readFromXlsx :: Xlsx -> (Cell -> Value) -> Text -> Bool -> ByteString
-readFromXlsx xlsx cellToValue sheetname header =
+readFromXlsx :: Xlsx -> (Cell -> Value) -> Text -> Bool -> Maybe Int -> Maybe Int -> ByteString
+readFromXlsx xlsx cellToValue sheetname header firstRow lastRow =
   if DM.member sheetname mapSheets
     then
-      sheetToDataframe (cleanCellMap . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname) cellToValue header
+      sheetToDataframe (filterCellMap firstRow lastRow . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname) cellToValue header
     else
       encode $
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
@@ -78,29 +78,29 @@ getXlsxAndStyleSheet file =
     let stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
     return (xlsx, stylesheet)
 
-read1 :: FilePath -> Text -> Bool -> IO ByteString
-read1 file sheetname header = do
+read1 :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
+read1 file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
-  return $ readFromXlsx xlsx (cellFormatter stylesheet) sheetname header
+  return $ readFromXlsx xlsx (cellFormatter stylesheet) sheetname header firstRow lastRow
 
-readComments :: FilePath -> Text -> Bool -> IO ByteString
+readComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
-readTypes :: FilePath -> Text -> Bool -> IO ByteString
-readTypes file sheetname header = do
+readTypes :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
+readTypes file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
-  return $ readFromXlsx xlsx (cellType stylesheet) sheetname header
+  return $ readFromXlsx xlsx (cellType stylesheet) sheetname header firstRow lastRow
 
 -- ne pas retourner comments s'il n'y en a pas ?
-readDataAndComments :: FilePath -> Text -> Bool -> IO ByteString
-readDataAndComments file sheetname header = do
+readDataAndComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
+readDataAndComments file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
   let sheets = DM.keys mapSheets
   if DM.member sheetname mapSheets
     then
       return $ sheetToTwoDataframes
-                 (cleanCellMap . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname)
+                 (filterCellMap firstRow lastRow . _wsCells $ fromJust $ xlsx ^? ixSheet sheetname)
                    "data" (cellFormatter stylesheet)
                      "comments" cellToCommentValue header
                        True

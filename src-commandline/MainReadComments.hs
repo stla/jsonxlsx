@@ -16,7 +16,7 @@ data Arguments = Arguments
 getComments :: Arguments -> IO()
 getComments (Arguments file sheet colnames firstRow lastRow) =
   do
-    json <- readComments file (T.pack sheet) colnames
+    json <- readComments file (T.pack sheet) colnames firstRow lastRow
     L.putStrLn json
 
 run :: Parser Arguments

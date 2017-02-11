@@ -17,11 +17,11 @@ data Arguments = Arguments
 readXLSX :: Arguments -> IO()
 readXLSX (Arguments file (Just sheet) colnames False firstRow lastRow) =
   do
-    json <- read1 file (T.pack sheet) colnames
+    json <- read1 file (T.pack sheet) colnames firstRow lastRow
     L.putStrLn json
 readXLSX (Arguments file (Just sheet) colnames True firstRow lastRow) =
   do
-    json <- readDataAndComments file (T.pack sheet) colnames
+    json <- readDataAndComments file (T.pack sheet) colnames firstRow lastRow
     L.putStrLn json
 readXLSX (Arguments file Nothing colnames False _ _) =
   do

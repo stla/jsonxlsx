@@ -16,7 +16,7 @@ data Arguments = Arguments
 getTypes :: Arguments -> IO()
 getTypes (Arguments file sheet colnames firstRow lastRow) =
   do
-    json <- readTypes file (T.pack sheet) colnames
+    json <- readTypes file (T.pack sheet) colnames firstRow lastRow 
     L.putStrLn json
 
 run :: Parser Arguments
