@@ -26,7 +26,7 @@ library
                      , ByteStringToBase64
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
-                     , xlsx
+                     , xlsx == 0.4.2
                      , aeson == 1.0.2.1
                      , dates == 0.2.2.1
                      , regex-compat
@@ -53,7 +53,7 @@ executable json2xlsx
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.0.0
+                     , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
                      , utf8-string
@@ -65,7 +65,7 @@ executable xlsx2json
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.0.0
+                     , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
 
@@ -76,7 +76,7 @@ executable getXLSXcomments
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.0.0
+                     , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
 
@@ -87,7 +87,7 @@ executable getXLSXtypes
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.0.0
+                     , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
 
@@ -98,6 +98,6 @@ executable getXLSXsheets
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.0.0
+                     , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text

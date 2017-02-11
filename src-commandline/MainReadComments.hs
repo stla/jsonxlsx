@@ -7,12 +7,14 @@ import           Options.Applicative
 import           ReadXLSX                   (readComments)
 
 data Arguments = Arguments
-  { file     :: String
-  , sheet    :: String
-  , colnames :: Bool }
+  { file :: String
+  , sheet :: String
+  , colnames :: Bool
+  , firstRow :: Maybe Int
+  , lastRow :: Maybe Int }
 
 getComments :: Arguments -> IO()
-getComments (Arguments file sheet colnames) =
+getComments (Arguments file sheet colnames firstRow lastRow) =
   do
     json <- readComments file (T.pack sheet) colnames
     L.putStrLn json
@@ -32,7 +34,16 @@ run = Arguments
      <*>  switch
           ( long "header"
          <> help "Whether the sheet has column headers" )
-
+     <*> optional (option auto
+          ( metavar "FIRSTROW"
+         <> long "firstrow"
+         <> short 'F'
+         <> help "First row" ))
+     <*> optional (option auto
+          ( metavar "LASTROW"
+         <> long "lastrow"
+         <> short 'L'
+         <> help "Last row" ))
 
 main :: IO()
 main = execParser opts >>= getComments

@@ -11,7 +11,7 @@ import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.ByteString.Lazy      as L
 import           Data.Either.Extra         (fromRight')
 import qualified Data.Map                  as DM
-import           Data.Maybe                (fromJust, isJust)
+import           Data.Maybe                (fromJust, isJust, fromMaybe)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as T
 -- import Data.Text.Lazy.Encoding (encodeUtf8)
@@ -21,6 +21,12 @@ import           Data.Aeson                (Value, encode)
 
 cleanCellMap :: CellMap -> CellMap
 cleanCellMap = DM.filter (isJust . _cellValue)
+
+filterCellMap :: Maybe Int -> Maybe Int -> CellMap -> CellMap
+filterCellMap firstRow lastRow = DM.filterWithKey f
+              where f (i,j) cell = i >= fr && j <= lr && (isJust . _cellValue) cell
+                    fr = fromMaybe 1 firstRow
+                    lr = fromMaybe (maxBound::Int) lastRow
 
 isNonEmptyWorksheet :: Worksheet -> Bool
 isNonEmptyWorksheet ws = cleanCellMap (_wsCells ws) /= DM.empty

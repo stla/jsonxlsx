@@ -2,6 +2,7 @@
 module Empty
     where
 import Codec.Xlsx.Types -- (Cell, Worksheet, Comment, XlsxText)
+import Codec.Xlsx.Formatted
 import qualified Data.Map.Lazy as DML
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -41,3 +42,6 @@ emptyFillPattern = fromJust $ _fillPattern emptyFill
 gray125Fill = set fillPattern
                 (Just (set fillPatternType (Just PatternTypeGray125) emptyFillPattern))
                   emptyFill
+
+emptyFormattedCell :: FormattedCell
+emptyFormattedCell = def
