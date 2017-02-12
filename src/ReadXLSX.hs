@@ -24,7 +24,7 @@ cleanCellMap = DM.filter (isJust . _cellValue)
 
 filterCellMap :: Maybe Int -> Maybe Int -> CellMap -> CellMap
 filterCellMap firstRow lastRow = DM.filterWithKey f
-              where f (i,j) cell = i >= fr && j <= lr && (isJust . _cellValue) cell
+              where f (i,j) cell = i >= fr && i <= lr && (isJust . _cellValue) cell
                     fr = fromMaybe 1 firstRow
                     lr = fromMaybe (maxBound::Int) lastRow
 
