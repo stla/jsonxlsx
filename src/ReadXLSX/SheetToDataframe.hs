@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module ReadXLSX.SheetToDataframe
   where
+import ReadXLSX.Internal
 import Codec.Xlsx
 import Empty (emptyCell)
 import ExcelDates (intToDate)
@@ -100,39 +101,6 @@ cellType stylesheet cell
         Just (CellRich _) -> String "richtext"
 
 -- -------------------------------------------------------------------------
--- used for the headers only
-valueToText :: Value -> Maybe Text
-valueToText value =
-  case value of
-    (Number x) -> Just y
-      where y = if isRight z then TS.showt (fromRight' z) else TS.showt (fromLeft' z)
-            z = floatingOrInteger x :: Either Float Int
-    (String a) -> Just a
-    (Bool a) -> Just (TS.showt a)
-    Null -> Nothing
-
-
-cellToCellValue :: Cell -> Value
-cellToCellValue cell =
-  case _cellValue cell of
-    Just (CellDouble x) -> Number (fromFloatDigits x)
-    Just (CellText x) -> String x
-    Just (CellBool x) -> Bool x
-    Nothing -> Null
-    Just (CellRich x) -> String (T.concat $ _richTextRunText <$> x)
-
-
-colheadersAsMap :: CellMap -> Map Int Text
-colheadersAsMap cells = DM.fromSet
-                          (\j -> fromMaybe (T.concat [T.pack "X", TS.showt (j-firstCol+1)]) $
-                                   valueToText . cellToCellValue $ -- cells DM.! (firstRow,j))
-                                     fromMaybe emptyCell (DM.lookup (firstRow, j) cells))
-                            (DS.fromList colrange)
-                        where colrange = [firstCol .. maximum colCoords]
-                              colCoords = map snd keys
-                              firstCol = minimum colCoords
-                              firstRow = minimum $ map fst keys
-                              keys = DM.keys cells
 
 extractRow :: CellMap -> (Cell -> Value) -> Map Int Text -> Int -> InsOrdHashMap Text Value
 extractRow cells cellToValue headers i = DHSI.fromList $
@@ -146,7 +114,7 @@ sheetToMapList cells cellToValue header = map (extractRow cells cellToValue head
                              rowCoords = map fst keys
                              (headers, i) = if header
                                                then
-                                                (colheadersAsMap  cells, 1)
+                                                (colHeadersAsMap  cells, 1)
                                                else
                                                 (DM.fromList $ map (\j -> (j, T.concat [T.pack "X", TS.showt j])) [minimum colCoords .. maximum colCoords], 0)
                              colCoords = map snd keys
@@ -186,7 +154,7 @@ sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header toNull =
                              rowCoords = map fst keys
                              (headers, i) = if header
                                                then
-                                                (colheadersAsMap  cells, 1)
+                                                (colHeadersAsMap  cells, 1)
                                                else
                                                 (DM.fromList $ map (\j -> (j, T.concat [T.pack "X", TS.showt j])) [minimum colCoords .. maximum colCoords], 0)
                              colCoords = map snd keys

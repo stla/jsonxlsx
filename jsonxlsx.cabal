@@ -19,7 +19,9 @@ library
                      , WriteXLSX.DataframeToSheet
                      , Empty
                      , ReadXLSX
+                     , ReadXLSX.Internal
                      , ReadXLSX.SheetToDataframe
+                     , ReadXLSX.SheetToList
                      , ReadXLSX.AllSheetsToJSON
                      , ReadXLSX.ReadComments
                      , ExcelDates
