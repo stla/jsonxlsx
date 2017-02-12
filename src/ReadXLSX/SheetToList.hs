@@ -50,7 +50,7 @@ extractColumn cells cellToValue skip j = DV.fromList $
                                           rowCoords = map fst $ DM.keys cells
 
 sheetToMap :: CellMap -> (Cell -> Value) -> Bool -> InsOrdHashMap Text Array
-sheetToList cells cellToValue header = DHSI.fromList $
+sheetToMap cells cellToValue header = DHSI.fromList $
                                          map (\j -> (colnames !! j, extractColumn cells cellToValue skip (j+firstCol))) [0 .. length colnames - 1]
                                        where (skip, colnames) = if header
                                                                    then (1, colHeaders cells)
