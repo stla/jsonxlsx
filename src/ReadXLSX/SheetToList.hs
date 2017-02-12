@@ -29,13 +29,9 @@ import           Data.Scientific               (Scientific, floatingOrInteger,
 import qualified Data.Set                      as DS
 import qualified TextShow                      as TS
 -- for tests:
-import qualified Data.ByteString.Lazy          as L
-import           WriteXLSX
-import           WriteXLSX.DataframeToSheet
--- get some cells
-cells = fst $ dfToCells df True
-coords = DM.keys cells
+import TestsXLSX
 
+-- not used yet
 cellValueToValue :: Maybe CellValue -> Value
 cellValueToValue cellvalue =
   case cellvalue of
@@ -44,18 +40,24 @@ cellValueToValue cellvalue =
     Just (CellBool x) -> Bool x
     Nothing -> Null
     Just (CellRich x) -> String (T.concat $ _richTextRunText <$> x)
-
 excelColumnToArray :: [Maybe CellValue] -> Array
 excelColumnToArray column = DV.fromList (map cellValueToValue column)
 
-extractColumn :: CellMap -> (Cell -> Value) -> Int -> Array
-extractColumn cells cellToValue j = DV.fromList $
+extractColumn :: CellMap -> (Cell -> Value) -> Int -> Int -> Array
+extractColumn cells cellToValue skip j = DV.fromList $
                                       map (\i -> cellToValue $ fromMaybe emptyCell (DM.lookup (i,j) cells)) rowRange
-                                    where rowRange = [minimum rowCoords .. maximum rowCoords]
+                                    where rowRange = [skip + minimum rowCoords .. maximum rowCoords]
                                           rowCoords = map fst $ DM.keys cells
 
+sheetToList :: CellMap -> (Cell -> Value) -> Bool -> InsOrdHashMap Text Array
+sheetToList cells cellToValue header = DHSI.fromList $
+                                         map (\j -> (colnames !! j, extractColumn cells cellToValue skip (j+firstCol))) [0 .. length colnames - 1]
+                                       where (skip, colnames) = if header
+                                                                   then (1, colHeaders cells)
+                                                                   else (0, map (\j -> T.concat [T.pack "X", TS.showt j]) colRange)
+                                             (colRange, firstCol, _) = cellsRange cells
 
---
-
+tttt :: InsOrdHashMap Text Array
+tttt = sheetToList cellmapExample cellToCellValue True
 
 --

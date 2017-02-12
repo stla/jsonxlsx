@@ -24,12 +24,7 @@ import Data.ByteString.Lazy.Internal (unpackChars, packChars)
 import Data.Either.Extra
 import Data.List.UniqueUnsorted (count)
 -- for tests:
-import WriteXLSX
-import WriteXLSX.DataframeToSheet
-import qualified Data.ByteString.Lazy as L
--- get some cells
-cells = fst $ dfToCells df True
-coords = DM.keys cells
+import TestsXLSX
 
 -- y'a pas ça dans Codec.Xlsx.Formatted ?
 -- si le NumFmtId correspond à une date je transforme
@@ -56,26 +51,6 @@ isDate cell stylesheet =
     (Just (CellDouble _), Just x) -> (numFmtIdMapper stylesheet DM.! x) `elem` [Just 14, Just 15, Just 16, Just 17]
     (_, _) -> False
 
--- for tests:
-getXlsx :: FilePath -> IO Xlsx
-getXlsx file = do
-  bs <- L.readFile file
-  return $ toXlsx bs
-getWSheet :: FilePath -> IO Worksheet
-getWSheet file = do
-  xlsx <- getXlsx file
-  return $ snd $ head (_xlSheets xlsx)
-getStyleSheet :: FilePath -> IO StyleSheet
-getStyleSheet file = do
-    xlsx <- getXlsx file
-    let ss = parseStyleSheet $ _xlStyles xlsx
-    return $ fromRight minimalStyleSheet ss
-cellsexample :: IO CellMap
-cellsexample = do
-  ws <- getWSheet "./tests_XLSXfiles/Book1Walter.xlsx"
-  return $ _wsCells ws
-stylesheetexample :: IO StyleSheet
-stylesheetexample = getStyleSheet "./tests_XLSXfiles/Book1Walter.xlsx"
 
 -- dans ReadXLSX tu mets cellFormatter stylesheet au lieu de cellToValue :
 cellFormatter :: StyleSheet -> (Cell -> Value)
@@ -124,7 +99,7 @@ sheetToMapList cells cellToValue header = map (extractRow cells cellToValue head
 sheetToDataframe :: CellMap -> (Cell -> Value) -> Bool -> ByteString
 sheetToDataframe cells cellToValue header = encode $ sheetToMapList cells cellToValue header
 
-test = sheetToDataframe cells cellToCellValue True
+test = sheetToDataframe cellmapExample cellToCellValue True
 
 -- Null Dataframe
 isNullDataframe :: [InsOrdHashMap Text Value] -> Bool
