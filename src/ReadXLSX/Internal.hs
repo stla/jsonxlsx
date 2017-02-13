@@ -2,6 +2,7 @@
 module ReadXLSX.Internal
   where
 import           Codec.Xlsx
+import Codec.Xlsx.Formatted
 import           Data.Map                      (Map)
 import qualified Data.Map                      as DM
 import           Data.Maybe                    (fromMaybe, isNothing)
@@ -22,6 +23,8 @@ import           Data.Scientific               (Scientific, floatingOrInteger,
                                                 fromFloatDigits)
 import qualified Data.Set                      as DS
 import qualified TextShow                      as TS
+
+type FormattedCellMap = Map (Int, Int) FormattedCell
 
 
 cellToCellValue :: Cell -> Value
