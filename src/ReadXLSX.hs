@@ -95,6 +95,9 @@ sheetToJsonList file sheetname header = do
   let sheetAsMap = sheetToMap fcells fcellToCellValue header
   return $ encode sheetAsMap
 
+-- TODO for output data+comments+types : [Text] -> [FormattedCellMap -> Value]
+-- example ["data", "comments"] .. 
+
 readComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
