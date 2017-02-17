@@ -4,9 +4,12 @@ module ReadXLSX
 import           ReadXLSX.AllSheetsToJSON
 import           ReadXLSX.ReadComments
 import           ReadXLSX.SheetToDataframe
+import ReadXLSX.SheetToList
+import ReadXLSX.Internal (fcellToCellValue)
 -- import WriteXLSX
 -- import WriteXLSX.DataframeToSheet
 import           Codec.Xlsx
+import Codec.Xlsx.Formatted
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.ByteString.Lazy      as L
 import           Data.Either.Extra         (fromRight')
@@ -19,6 +22,7 @@ import qualified Data.Text                 as T
 import           Control.Lens              ((^?))
 import           Data.Aeson                (Value, encode)
 
+-- TODO: don't clean if there's a comment in an empty cell
 cleanCellMap :: CellMap -> CellMap
 cleanCellMap = DM.filter (isJust . _cellValue)
 
@@ -83,6 +87,14 @@ read1 file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   return $ readFromXlsx xlsx (cellFormatter stylesheet) sheetname header firstRow lastRow
 
+sheetToJsonList :: FilePath -> Text -> Bool -> IO ByteString
+sheetToJsonList file sheetname header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let ws = fromJust $ xlsx ^? ixSheet sheetname
+  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+  let sheetAsMap = sheetToMap fcells fcellToCellValue header
+  return $ encode sheetAsMap
+
 readComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
@@ -91,7 +103,7 @@ readTypes file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   return $ readFromXlsx xlsx (cellType stylesheet) sheetname header firstRow lastRow
 
--- ne pas retourner comments s'il n'y en a pas ?
+-- ne pas retourner comments s'il n'y en a pas ? c'est fait il me semble, je retourne Null
 readDataAndComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readDataAndComments file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
