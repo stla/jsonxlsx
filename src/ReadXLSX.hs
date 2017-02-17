@@ -96,7 +96,7 @@ sheetToJsonList file sheetname header = do
   return $ encode sheetAsMap
 
 -- TODO for output data+comments+types : [Text] -> [FormattedCellMap -> Value]
--- example ["data", "comments"] .. 
+-- example ["data", "comments"] ..
 
 readComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
@@ -106,7 +106,6 @@ readTypes file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   return $ readFromXlsx xlsx (cellType stylesheet) sheetname header firstRow lastRow
 
--- ne pas retourner comments s'il n'y en a pas ? c'est fait il me semble, je retourne Null
 readDataAndComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readDataAndComments file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file

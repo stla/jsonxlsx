@@ -103,7 +103,7 @@ test = sheetToDataframe cellmapExample cellToCellValue True
 
 -- Null Dataframe
 isNullDataframe :: [InsOrdHashMap Text Value] -> Bool
-isNullDataframe df = map fst (count (DHSI.elems (DHSI.unions df))) == [Null]
+isNullDataframe df = map fst (count (concatMap DHSI.elems df)) == [Null]
 -- plutôt que count: http://stackoverflow.com/questions/16108714/haskell-removing-duplicates-from-a-list
 --    http://stackoverflow.com/questions/3098391/unique-elements-in-a-haskell-list
 
@@ -129,7 +129,7 @@ sheetToTwoMapLists cells key1 cellToValue1 key2 cellToValue2 header toNull =
                              rowCoords = map fst keys
                              (headers, i) = if header
                                                then
-                                                (colHeadersAsMap  cells, 1)
+                                                (colHeadersAsMap cells, 1)
                                                else
                                                 (DM.fromList $ map (\j -> (j, T.concat [T.pack "X", TS.showt j])) [minimum colCoords .. maximum colCoords], 0)
                              colCoords = map snd keys
