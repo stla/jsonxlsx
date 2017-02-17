@@ -3,6 +3,7 @@ module ReadXLSX.Internal
   where
 import           Codec.Xlsx
 import Codec.Xlsx.Formatted
+import Control.Lens
 import           Data.Map                      (Map)
 import qualified Data.Map                      as DM
 import           Data.Maybe                    (fromMaybe, isNothing)
@@ -35,6 +36,25 @@ cellToCellValue cell =
     Just (CellBool x) -> Bool x
     Nothing -> Null
     Just (CellRich x) -> String (T.concat $ _richTextRunText <$> x)
+
+hasDateFormat :: FormattedCell -> Bool
+hasDateFormat fcell =
+  case view formatNumberFormat $ view formattedFormat fcell of
+    Just (StdNumberFormat x) -> x `elem` [NfMmDdYy, NfDMmmYy, NfDMmm, NfMmmYy, NfHMm12Hr, NfHMmSs12Hr, NfHMm, NfHMmSs, NfMdyHMm]
+    Just (UserNumberFormat _) -> False
+    Nothing -> False
+
+fcellToCellValue :: FormattedCell -> Value
+fcellToCellValue fcell =
+  if hasDateFormat fcell
+    then
+      case (_cellValue . _formattedCell) fcell of
+        Just (CellDouble x) -> String (intToDate $ round x)
+        Nothing -> Null
+        _ -> String "anomalous date detected!" -- pb file Walter
+    else
+      (cellToCellValue . _formattedCell) fcell
+
 
 -- used for the headers only
 valueToText :: Value -> Maybe Text

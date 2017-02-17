@@ -3,12 +3,13 @@ module ReadXLSX.SheetToList
   where
 import ReadXLSX.Internal
 import           Codec.Xlsx
+import Codec.Xlsx.Formatted
 import           Data.Map                      (Map)
 import qualified Data.Map                      as DM
 import           Data.Maybe                    (fromMaybe, isNothing)
 import           Data.Text                     (Text)
 import qualified Data.Text                     as T
-import           Empty                         (emptyCell)
+import           Empty                         (emptyFormattedCell)
 import           ExcelDates                    (intToDate)
 -- import qualified Data.Text.Lazy as TL
 -- import qualified Data.Text.Lazy.IO as TLIO
@@ -43,21 +44,25 @@ cellValueToValue cellvalue =
 excelColumnToArray :: [Maybe CellValue] -> Array
 excelColumnToArray column = DV.fromList (map cellValueToValue column)
 
-extractColumn :: CellMap -> (Cell -> Value) -> Int -> Int -> Array
-extractColumn cells cellToValue skip j = DV.fromList $
-                                      map (\i -> cellToValue $ fromMaybe emptyCell (DM.lookup (i,j) cells)) rowRange
+extractColumn :: FormattedCellMap -> (FormattedCell -> Value) -> Int -> Int -> Array
+extractColumn fcells fcellToValue skip j = DV.fromList $
+                                      map (\i -> fcellToValue $ fromMaybe emptyFormattedCell (DM.lookup (i,j) fcells)) rowRange
                                     where rowRange = [skip + minimum rowCoords .. maximum rowCoords]
-                                          rowCoords = map fst $ DM.keys cells
+                                          rowCoords = map fst $ DM.keys fcells
+                                          -- cells = DM.map _formattedCell fcells
 
-sheetToMap :: CellMap -> (Cell -> Value) -> Bool -> InsOrdHashMap Text Array
-sheetToMap cells cellToValue header = DHSI.fromList $
-                                         map (\j -> (colnames !! j, extractColumn cells cellToValue skip (j+firstCol))) [0 .. length colnames - 1]
+sheetToMap :: FormattedCellMap -> (FormattedCell -> Value) -> Bool -> InsOrdHashMap Text Array
+sheetToMap fcells fcellToValue header = DHSI.fromList $
+                                         map (\j -> (colnames !! j, extractColumn fcells fcellToValue skip (j+firstCol))) [0 .. length colnames - 1]
                                        where (skip, colnames) = if header
                                                                    then (1, colHeaders cells)
                                                                    else (0, map (\j -> T.concat [T.pack "X", TS.showt j]) colRange)
                                              (colRange, firstCol, _) = cellsRange cells
+                                             cells = DM.map _formattedCell fcells -- to improve, no need that
 
-tttt :: InsOrdHashMap Text Array
-tttt = sheetToMap cellmapExample cellToCellValue True
+tttt :: IO (InsOrdHashMap Text Array)
+tttt = do
+  fcm <- formattedcellsexample
+  return $ sheetToMap fcm fcellToCellValue True
 
 --
