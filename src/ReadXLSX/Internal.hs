@@ -9,7 +9,7 @@ import qualified Data.Map                      as DM
 import           Data.Maybe                    (fromMaybe, isNothing)
 import           Data.Text                     (Text)
 import qualified Data.Text                     as T
-import           Empty                         (emptyCell)
+import           Empty                         (emptyCell, emptyFormattedCell)
 import           ExcelDates                    (intToDate)
 import           Data.Aeson.Types              (Array, Object, Value,
                                                 Value (Number), Value (String),
@@ -67,7 +67,7 @@ valueToText value =
     (Bool a) -> Just (TS.showt a)
     Null -> Nothing
 
-cellsRange :: CellMap -> ([Int], Int, Int)
+cellsRange :: Map (Int, Int) a -> ([Int], Int, Int)
 cellsRange cells = (colRange, firstCol, firstRow)
                    where colRange = [firstCol .. maximum colCoords]
                          colCoords = map snd keys
@@ -89,9 +89,15 @@ colHeadersAsMap :: CellMap -> Map Int Text
 colHeadersAsMap cells = DM.fromSet (getHeader cells firstRow firstCol) (DS.fromList colRange)
                         where (colRange, firstCol, firstRow) = cellsRange cells
 
+getHeader2 :: FormattedCellMap -> Int -> Int -> Int -> Text
+getHeader2 cells firstRow firstCol j =
+  fromMaybe (T.concat [T.pack "X", TS.showt (j-firstCol+1)]) $
+    valueToText . fcellToCellValue $
+      fromMaybe emptyFormattedCell (DM.lookup (firstRow, j) cells)
 
-
---
+colHeaders2 :: FormattedCellMap -> [Text]
+colHeaders2 cells = map (getHeader2 cells firstRow firstCol) colRange
+                   where (colRange, firstCol, firstRow) = cellsRange cells
 
 
 --

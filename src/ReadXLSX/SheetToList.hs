@@ -55,10 +55,10 @@ sheetToMap :: FormattedCellMap -> (FormattedCell -> Value) -> Bool -> InsOrdHash
 sheetToMap fcells fcellToValue header = DHSI.fromList $
                                          map (\j -> (colnames !! j, extractColumn fcells fcellToValue skip (j+firstCol))) [0 .. length colnames - 1]
                                        where (skip, colnames) = if header
-                                                                   then (1, colHeaders cells)
+                                                                   then (1, colHeaders2 fcells)
                                                                    else (0, map (\j -> T.concat [T.pack "X", TS.showt j]) colRange)
-                                             (colRange, firstCol, _) = cellsRange cells
-                                             cells = DM.map _formattedCell fcells -- to improve, no need that
+                                             (colRange, firstCol, _) = cellsRange fcells
+                                             -- cells = DM.map _formattedCell fcells -- to improve, no need that ; si pour headers ?
 
 tttt :: IO (InsOrdHashMap Text Array)
 tttt = do
