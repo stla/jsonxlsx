@@ -22,9 +22,8 @@ import qualified Data.Text                 as T
 import           Control.Lens              ((^?))
 import           Data.Aeson                (Value, encode)
 
--- TODO: don't clean if there's a comment in an empty cell
 cleanCellMap :: CellMap -> CellMap
-cleanCellMap = DM.filter (isJust . _cellValue)
+cleanCellMap = DM.filter (\cell -> (isJust . _cellValue) cell || (isJust . _cellComment) cell)
 
 filterCellMap :: Maybe Int -> Maybe Int -> CellMap -> CellMap
 filterCellMap firstRow lastRow = DM.filterWithKey f

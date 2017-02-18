@@ -46,9 +46,11 @@ stylesheetexample = getStyleSheet "./tests_XLSXfiles/Book1Walter.xlsx"
 
 formattedcellsexample :: IO (Map (Int, Int) FormattedCell)
 formattedcellsexample = do
-  ws <- getWSheet "./tests_XLSXfiles/time.xlsx"
-  stylesheet <- getStyleSheet "./tests_XLSXfiles/time.xlsx"
+  ws <- getWSheet "./tests_XLSXfiles/simpleExcel.xlsx"
+  stylesheet <- getStyleSheet "./tests_XLSXfiles/simpleExcel.xlsx"
   return $ toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
 
 -- fcm <- formattedcellsexample
 -- view formatNumberFormat $ view formattedFormat  $ fcm DM.! (3,1)
+
+-- StyleSheet only a subset of Styles ! (currently)
