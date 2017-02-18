@@ -25,7 +25,8 @@ emptyWorksheet = Worksheet { _wsColumns = [],
                              _wsDataValidations = DML.empty,
                              _wsPivotTables = [],
                              _wsAutoFilter = Nothing,
-                             _wsTables = [] }
+                             _wsTables = [],
+                             _wsProtection = Nothing }
 
 emptyComment = Comment { _commentText = XlsxText T.empty,
                          _commentAuthor = "",

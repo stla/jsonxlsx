@@ -37,10 +37,10 @@ resolver: nightly-2017-02-11
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
-#- location:
-#   git: https://github.com/qrilka/xlsx.git
-#   commit: 3b453339a155ee5c7fcf8fcc75d1f9bdd891037b
-#  extra-dep: true
+- location:
+   git: https://github.com/qrilka/xlsx.git
+   commit: 0ebcc90793bd366fc374dc501d3b295027acd587
+  extra-dep: true
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
