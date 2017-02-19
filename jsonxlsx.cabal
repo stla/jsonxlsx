@@ -23,13 +23,12 @@ library
                      , ReadXLSX.SheetToDataframe
                      , ReadXLSX.SheetToList
                      , ReadXLSX.AllSheetsToJSON
-                     , ReadXLSX.ReadComments
                      , ExcelDates
                      , ByteStringToBase64
                      , TestsXLSX
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
-                     , xlsx 
+                     , xlsx
                      , aeson == 1.0.2.1
                      , dates == 0.2.2.1
                      , regex-compat

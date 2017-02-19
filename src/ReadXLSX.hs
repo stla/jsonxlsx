@@ -2,20 +2,22 @@
 module ReadXLSX
     where
 import           ReadXLSX.AllSheetsToJSON
-import           ReadXLSX.ReadComments
+import           ReadXLSX.Internal         (cellToCommentValue,
+                                            fcellToCellComment,
+                                            fcellToCellFormat, fcellToCellType,
+                                            fcellToCellValue)
 import           ReadXLSX.SheetToDataframe
-import ReadXLSX.SheetToList
-import ReadXLSX.Internal (fcellToCellValue)
+import           ReadXLSX.SheetToList
 -- import WriteXLSX
 -- import WriteXLSX.DataframeToSheet
 import           Codec.Xlsx
-import Codec.Xlsx.Formatted
+import           Codec.Xlsx.Formatted
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.ByteString.Lazy      as L
 import           Data.Either.Extra         (fromRight')
-import Data.Map (Map)
+import           Data.Map                  (Map)
 import qualified Data.Map                  as DM
-import           Data.Maybe                (fromJust, isJust, fromMaybe)
+import           Data.Maybe                (fromJust, fromMaybe, isJust)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as T
 -- import Data.Text.Lazy.Encoding (encodeUtf8)
@@ -131,7 +133,19 @@ readAllWithComments file header =
 
 valueGetters :: Map Text (FormattedCell -> Value)
 valueGetters = DM.fromList
-                 [("data", fcellToCellValue), ("comments", cellToCommentValue . _formattedCell)]
+                 [("data", fcellToCellValue),
+                 ("comments", fcellToCellComment),
+                 ("types", fcellToCellType),
+                 ("formats", fcellToCellFormat)]
+
+--
+sheetToJSON :: FilePath -> Text -> Text -> Bool -> IO ByteString
+sheetToJSON file sheetname what header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let ws = fromJust $ xlsx ^? ixSheet sheetname
+  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+  let sheetAsMap = sheetToMap fcells (valueGetters DM.! what) header
+  return $ encode sheetAsMap
 
 sheetToCDF :: FilePath -> Text -> Bool -> IO ByteString
 sheetToCDF file sheetname header = do
@@ -146,5 +160,5 @@ sheetToCDFandComments file sheetname header = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let ws = fromJust $ xlsx ^? ixSheet sheetname
   let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
-  let sheetAsMapList = sheetToMapMap fcells header ["data", "comments"] [fcellToCellValue, cellToCommentValue . _formattedCell]
+  let sheetAsMapList = sheetToMapMap fcells header ["data", "comments"] [fcellToCellValue, fcellToCellComment]
   return $ encode sheetAsMapList

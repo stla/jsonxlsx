@@ -41,7 +41,7 @@ hasDateFormat :: FormattedCell -> Bool
 hasDateFormat fcell =
   case view formatNumberFormat $ view formattedFormat fcell of
     Just (StdNumberFormat x) -> x `elem` [NfMmDdYy, NfDMmmYy, NfDMmm, NfMmmYy, NfHMm12Hr, NfHMmSs12Hr, NfHMm, NfHMmSs, NfMdyHMm]
-    Just (UserNumberFormat _) -> False
+    Just (UserNumberFormat x) -> x `elem` ["yyyy\\-mm\\-dd;@"]
     Nothing -> False
 
 fcellToCellFormat :: FormattedCell -> Value
@@ -74,6 +74,23 @@ fcellToCellValue fcell =
     else
       (cellToCellValue . _formattedCell) fcell
 
+--
+-- COMMENTS
+--
+commentTextAsValue :: XlsxText -> Value
+commentTextAsValue comment =
+  case comment of
+    XlsxText text -> String text
+    XlsxRichText richtextruns -> String (T.concat $ _richTextRunText <$> richtextruns)
+
+cellToCommentValue :: Cell -> Value
+cellToCommentValue cell =
+  case _cellComment cell of
+    Just comment -> commentTextAsValue $ _commentText comment
+    Nothing      -> Null
+
+fcellToCellComment :: FormattedCell -> Value
+fcellToCellComment = cellToCommentValue . _formattedCell
 
 -- used for the headers only
 valueToText :: Value -> Maybe Text
