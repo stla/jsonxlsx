@@ -44,6 +44,25 @@ hasDateFormat fcell =
     Just (UserNumberFormat _) -> False
     Nothing -> False
 
+fcellToCellFormat :: FormattedCell -> Value
+fcellToCellFormat fcell =
+  case view formatNumberFormat $ view formattedFormat fcell of
+    Just (StdNumberFormat x) -> String (T.pack (show x))
+    Just (UserNumberFormat x) -> String x
+    Nothing -> Null
+
+fcellToCellType :: FormattedCell -> Value
+fcellToCellType fcell
+  | isNothing cellvalue = Null
+  | hasDateFormat fcell = String "date"
+  | otherwise =
+      case cellvalue of
+        Just (CellDouble _) -> String "number"
+        Just (CellText _) -> String "text"
+        Just (CellBool _) -> String "boolean"
+        Just (CellRich _) -> String "richtext"
+  where cellvalue = (_cellValue . _formattedCell) fcell
+
 fcellToCellValue :: FormattedCell -> Value
 fcellToCellValue fcell =
   if hasDateFormat fcell

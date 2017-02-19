@@ -13,6 +13,7 @@ import Codec.Xlsx.Formatted
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.ByteString.Lazy      as L
 import           Data.Either.Extra         (fromRight')
+import Data.Map (Map)
 import qualified Data.Map                  as DM
 import           Data.Maybe                (fromJust, isJust, fromMaybe)
 import           Data.Text                 (Text)
@@ -86,17 +87,6 @@ read1 file sheetname header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   return $ readFromXlsx xlsx (cellFormatter stylesheet) sheetname header firstRow lastRow
 
-sheetToJsonList :: FilePath -> Text -> Bool -> IO ByteString
-sheetToJsonList file sheetname header = do
-  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
-  let ws = fromJust $ xlsx ^? ixSheet sheetname
-  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
-  let sheetAsMap = sheetToMap fcells fcellToCellValue header
-  return $ encode sheetAsMap
-
--- TODO for output data+comments+types : [Text] -> [FormattedCellMap -> Value]
--- example ["data", "comments"] ..
-
 readComments :: FilePath -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readComments file = readFromFile file cellToCommentValue
 
@@ -122,7 +112,6 @@ readDataAndComments file sheetname header firstRow lastRow = do
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
                   T.intercalate ", " sheets]
 
-
 -- TODO: cleanCellMap in readAll - or is it handled by allSheetsToJSON ?
 readAll :: FilePath -> Bool -> IO ByteString
 readAll file header =
@@ -135,3 +124,27 @@ readAllWithComments file header =
   do
     (xlsx, stylesheet) <- getXlsxAndStyleSheet file
     return $ allSheetsToTwoDataframes xlsx "data "(cellFormatter stylesheet) "comments" cellToCommentValue header True
+
+--
+-- Columns Dataframes
+--
+
+valueGetters :: Map Text (FormattedCell -> Value)
+valueGetters = DM.fromList
+                 [("data", fcellToCellValue), ("comments", cellToCommentValue . _formattedCell)]
+
+sheetToCDF :: FilePath -> Text -> Bool -> IO ByteString
+sheetToCDF file sheetname header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let ws = fromJust $ xlsx ^? ixSheet sheetname
+  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+  let sheetAsMap = sheetToMap fcells fcellToCellValue header
+  return $ encode sheetAsMap
+
+sheetToCDFandComments :: FilePath -> Text -> Bool -> IO ByteString
+sheetToCDFandComments file sheetname header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let ws = fromJust $ xlsx ^? ixSheet sheetname
+  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+  let sheetAsMapList = sheetToMapMap fcells header ["data", "comments"] [fcellToCellValue, cellToCommentValue . _formattedCell]
+  return $ encode sheetAsMapList
