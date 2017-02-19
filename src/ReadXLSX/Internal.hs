@@ -6,7 +6,7 @@ import Codec.Xlsx.Formatted
 import Control.Lens
 import           Data.Map                      (Map)
 import qualified Data.Map                      as DM
-import           Data.Maybe                    (fromMaybe, isNothing)
+import           Data.Maybe                    (fromMaybe, isNothing, isJust)
 import           Data.Text                     (Text)
 import qualified Data.Text                     as T
 import           Empty                         (emptyCell, emptyFormattedCell)
@@ -137,3 +137,23 @@ colHeaders2 cells = map (getHeader2 cells firstRow firstCol) colRange
 
 
 --
+-- filters
+--
+cleanCellMap :: CellMap -> CellMap
+cleanCellMap = DM.filter (\cell -> (isJust . _cellValue) cell || (isJust . _cellComment) cell)
+
+isNonEmptyWorksheet :: Worksheet -> Bool
+isNonEmptyWorksheet ws = cleanCellMap (_wsCells ws) /= DM.empty
+
+filterCellMap :: Maybe Int -> Maybe Int -> CellMap -> CellMap
+filterCellMap firstRow lastRow = DM.filterWithKey f
+              where f (i,j) cell = i >= fr && i <= lr && (isJust . _cellValue) cell
+                    fr = fromMaybe 1 firstRow
+                    lr = fromMaybe (maxBound::Int) lastRow
+
+filterFormattedCellMap :: Maybe Int -> Maybe Int -> FormattedCellMap -> FormattedCellMap
+filterFormattedCellMap firstRow lastRow = DM.filterWithKey f
+              where f (i,j) fcell = i >= fr && i <= lr && ((isJust . _cellValue) cell || (isJust . _cellComment) cell)
+                                    where cell = _formattedCell fcell
+                    fr = fromMaybe 1 firstRow
+                    lr = fromMaybe (maxBound::Int) lastRow

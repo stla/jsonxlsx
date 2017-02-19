@@ -32,7 +32,7 @@ library
                      , aeson == 1.0.2.1
                      , dates == 0.2.2.1
                      , regex-compat
-                     , containers 
+                     , containers
                      , text
                      , lens
                      , bytestring
@@ -63,6 +63,17 @@ executable json2xlsx
 executable xlsx2json
   hs-source-dirs:      src-commandline
   main-is:             MainRead.hs
+  other-modules:
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , jsonxlsx
+                     , optparse-applicative == 0.13.1.0
+                     , bytestring
+                     , text
+
+executable xlsx2json2
+  hs-source-dirs:      src-commandline
+  main-is:             MainReadCDF.hs
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
