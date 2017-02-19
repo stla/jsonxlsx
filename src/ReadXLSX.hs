@@ -147,6 +147,17 @@ sheetToJSON file sheetname what header = do
   let sheetAsMap = sheetToMap fcells (valueGetters DM.! what) header
   return $ encode sheetAsMap
 
+sheetToJSONlist :: FilePath -> Text -> [Text] -> Bool -> IO ByteString
+sheetToJSONlist file sheetname what header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let ws = fromJust $ xlsx ^? ixSheet sheetname
+  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+  -- let sheetAsMap = sheetToMapMap fcells header (DM.restrictKeys valueGetters (DS.fromList what))
+  -- restrictKeys in containers >= 0.5.8
+  let sheetAsMap = sheetToMapMap fcells header (DM.filterWithKey (\k _ -> k `elem` what) valueGetters)
+  return $ encode sheetAsMap
+
+-- below : useless now, thanks to valueGetters
 sheetToCDF :: FilePath -> Text -> Bool -> IO ByteString
 sheetToCDF file sheetname header = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
@@ -155,10 +166,10 @@ sheetToCDF file sheetname header = do
   let sheetAsMap = sheetToMap fcells fcellToCellValue header
   return $ encode sheetAsMap
 
-sheetToCDFandComments :: FilePath -> Text -> Bool -> IO ByteString
-sheetToCDFandComments file sheetname header = do
-  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
-  let ws = fromJust $ xlsx ^? ixSheet sheetname
-  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
-  let sheetAsMapList = sheetToMapMap fcells header ["data", "comments"] [fcellToCellValue, fcellToCellComment]
-  return $ encode sheetAsMapList
+-- sheetToCDFandComments :: FilePath -> Text -> Bool -> IO ByteString
+-- sheetToCDFandComments file sheetname header = do
+--   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+--   let ws = fromJust $ xlsx ^? ixSheet sheetname
+--   let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+--   let sheetAsMapList = sheetToMapMap fcells header ["data", "comments"] [fcellToCellValue, fcellToCellComment]
+--   return $ encode sheetAsMapList
