@@ -66,7 +66,8 @@ sheetToMapMap :: FormattedCellMap ->  Bool -> Map Text (FormattedCell -> Value) 
 sheetToMapMap fcells header =
   DM.map
     (\valueGetter -> DHSI.fromList $
-      map (\j -> (colnames !! j, extractColumn fcells valueGetter skip (j+firstCol))) [0 .. length colnames - 1])
+      map (\j -> (colnames !! j, extractColumn fcells valueGetter skip (j+firstCol)))
+        [0 .. length colnames - 1])
   -- DM.fromList $
   --   map (\key -> (key, DHSI.fromList $
   --     map (\j -> (colnames !! j, extractColumn fcells (valuesMap DM.! key) skip (j+firstCol))) [0 .. length colnames - 1]))
@@ -77,9 +78,15 @@ sheetToMapMap fcells header =
         (colRange, firstCol, _) = cellsRange fcells
 --        keys = DM.keys valuesMap
 
+-- | Read several sheets
+--  sheetsToMapMap (Map sheetName -> FormattedCell) header (Map what -> value getter)
+sheetsToMapMap :: Map Text FormattedCellMap ->  Bool -> Map Text (FormattedCell -> Value) -> Map Text (Map Text (InsOrdHashMap Text Array))
+sheetsToMapMap fcellmapmap header gettermap =
+  DM.map (\fcellmap -> sheetToMapMap fcellmap header gettermap) fcellmapmap
 
 
 
+-- | Test
 tttt :: IO (InsOrdHashMap Text Array)
 tttt = do
   fcm <- formattedcellsexample

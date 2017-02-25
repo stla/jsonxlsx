@@ -145,6 +145,9 @@ cleanCellMap = DM.filter (\cell -> (isJust . _cellValue) cell || (isJust . _cell
 isNonEmptyWorksheet :: Worksheet -> Bool
 isNonEmptyWorksheet ws = cleanCellMap (_wsCells ws) /= DM.empty
 
+getNonEmptySheets :: Xlsx -> Map Text Worksheet
+getNonEmptySheets xlsx = DM.fromList $ filter (\sheet -> isNonEmptyWorksheet (snd sheet)) (_xlSheets xlsx)
+
 filterCellMap :: Maybe Int -> Maybe Int -> CellMap -> CellMap
 filterCellMap firstRow lastRow = DM.filterWithKey f
               where f (i,j) cell = i >= fr && i <= lr && (isJust . _cellValue) cell
@@ -157,3 +160,6 @@ filterFormattedCellMap firstRow lastRow = DM.filterWithKey f
                                     where cell = _formattedCell fcell
                     fr = fromMaybe 1 firstRow
                     lr = fromMaybe (maxBound::Int) lastRow
+
+cleanFormattedCellMap :: FormattedCellMap -> FormattedCellMap
+cleanFormattedCellMap = DM.filter (\fcell -> (isJust . _cellValue . _formattedCell) fcell || (isJust . _cellComment . _formattedCell) fcell)

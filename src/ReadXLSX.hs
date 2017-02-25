@@ -7,7 +7,7 @@ import           ReadXLSX.Internal         (cellToCommentValue,
                                             fcellToCellFormat, fcellToCellType,
                                             fcellToCellValue, cleanCellMap,
                                             filterCellMap, isNonEmptyWorksheet,
-                                            filterFormattedCellMap)
+                                            filterFormattedCellMap, getNonEmptySheets)
 import           ReadXLSX.SheetToDataframe
 import           ReadXLSX.SheetToList
 -- import WriteXLSX
@@ -129,6 +129,7 @@ valueGetters = DM.fromList
                  ("types", fcellToCellType),
                  ("formats", fcellToCellFormat)]
 
+-- | e.g shhetToJSON file "Sheet1" "comments" True Nothing Nothing
 sheetToJSON :: FilePath -> Text -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 sheetToJSON file sheetname what header firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
@@ -147,14 +148,21 @@ sheetToJSONlist file sheetname what header firstRow lastRow = do
   let sheetAsMap = sheetToMapMap fcells header (DM.filterWithKey (\k _ -> k `elem` what) valueGetters)
   return $ encode sheetAsMap
 
--- below : useless now, thanks to valueGetters
-sheetToCDF :: FilePath -> Text -> Bool -> IO ByteString
-sheetToCDF file sheetname header = do
+sheetsToJSONlist :: FilePath -> [Text] -> Bool -> IO ByteString
+sheetsToJSONlist file what header = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
-  let ws = fromJust $ xlsx ^? ixSheet sheetname
-  let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
-  let sheetAsMap = sheetToMap fcells fcellToCellValue header
-  return $ encode sheetAsMap
+  let sheetmap = getNonEmptySheets xlsx
+  let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
+  return $ encode (sheetsToMapMap fcellmapmap header (DM.filterWithKey (\k _ -> k `elem` what) valueGetters))
+
+-- below : useless now, thanks to valueGetters
+-- sheetToCDF :: FilePath -> Text -> Bool -> IO ByteString
+-- sheetToCDF file sheetname header = do
+--   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+--   let ws = fromJust $ xlsx ^? ixSheet sheetname
+--   let fcells = toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+--   let sheetAsMap = sheetToMap fcells fcellToCellValue header
+--   return $ encode sheetAsMap
 
 -- sheetToCDFandComments :: FilePath -> Text -> Bool -> IO ByteString
 -- sheetToCDFandComments file sheetname header = do

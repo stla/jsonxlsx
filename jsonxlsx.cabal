@@ -13,6 +13,12 @@ build-type:          Simple
 cabal-version:       >=1.22
 extra-source-files:  README.md
 
+flag exe
+    description:
+        Build the executables.
+    default: False
+    manual:  True
+
 library
   hs-source-dirs:      src
   exposed-modules:     WriteXLSX
@@ -29,7 +35,7 @@ library
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , xlsx
-                     , aeson == 1.0.2.1
+                     , aeson
                      , dates == 0.2.2.1
                      , regex-compat
                      , containers
@@ -37,7 +43,7 @@ library
                      , lens
                      , bytestring
                      , unordered-containers == 0.2.7.2
-                     , vector == 0.11.0.0
+                     , vector 
                      , time
                      , insert-ordered-containers == 0.2.0.0
                      , scientific == 0.3.4.10
@@ -49,6 +55,10 @@ library
                      , utf8-string
 
 executable json2xlsx
+  if flag(exe)
+    buildable: True
+  else
+    buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainWrite.hs
   other-modules:
@@ -61,6 +71,10 @@ executable json2xlsx
                      , utf8-string
 
 executable xlsx2json
+  if flag(exe)
+    buildable: True
+  else
+    buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainRead.hs
   other-modules:
@@ -72,6 +86,10 @@ executable xlsx2json
                      , text
 
 executable xlsx2json2
+  if flag(exe)
+    buildable: True
+  else
+    buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainReadCDF.hs
   other-modules:
@@ -83,6 +101,10 @@ executable xlsx2json2
                      , text
 
 executable getXLSXcomments
+  if flag(exe)
+    buildable: True
+  else
+    buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainReadComments.hs
   other-modules:
@@ -92,8 +114,11 @@ executable getXLSXcomments
                      , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
-
 executable getXLSXtypes
+  if flag(exe)
+    buildable: True
+  else
+    buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainReadTypes.hs
   other-modules:
@@ -105,6 +130,10 @@ executable getXLSXtypes
                      , text
 
 executable getXLSXsheets
+  if flag(exe)
+    buildable: True
+  else
+    buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainGetSheetnames.hs
   other-modules:
