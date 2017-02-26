@@ -6,12 +6,13 @@ import Options.Applicative
 import Data.Monoid ((<>))
 import qualified Data.ByteString.Lazy.Char8 as L
 import Data.Text (pack, splitOn)
+import Data.Maybe (isJust, fromJust)
 
 -- T.splitOn "," "data,comments" => ["data","comments"]
 
 data Arguments = Arguments
   { file :: String
-  , sheet :: String
+  , sheet :: Maybe String
   , what :: String
   , colnames :: Bool
   , firstRow :: Maybe Int
@@ -21,11 +22,19 @@ readXLSX :: Arguments -> IO()
 readXLSX (Arguments file sheet what colnames firstRow lastRow) =
   do
     let keys = splitOn (pack ",") (pack what)
-    if length keys > 1 then
-      sheetToJSONlist file (pack sheet) keys colnames firstRow lastRow >>= L.putStrLn
+    if length keys > 1
+      then
+        if isJust sheet
+          then
+            sheetToJSONlist file (pack (fromJust sheet)) keys colnames firstRow lastRow >>= L.putStrLn
+          else
+            sheetsToJSONlist file keys colnames >>= L.putStrLn
       else
-      sheetToJSON file (pack sheet) (head keys) colnames firstRow lastRow >>= L.putStrLn 
-
+        if isJust sheet
+          then
+            sheetToJSON file (pack (fromJust sheet)) (head keys) colnames firstRow lastRow >>= L.putStrLn
+          else
+            sheetsToJSON file (head keys) colnames >>= L.putStrLn
 
 run :: Parser Arguments
 run = Arguments
@@ -34,11 +43,11 @@ run = Arguments
          <> long "file"
          <> short 'f'
          <> help "XLSX file" )
-     <*> strOption
+     <*> optional (strOption
           ( metavar "SHEET"
          <> long "sheet"
          <> short 's'
-         <> help "Sheet name" )
+         <> help "Sheet name, leave empty to read all sheets" ))
      <*> strOption
           ( metavar "WHAT"
          <> long "what"

@@ -155,6 +155,13 @@ sheetsToJSONlist file what header = do
   let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
   return $ encode (sheetsToMapMap fcellmapmap header (DM.filterWithKey (\k _ -> k `elem` what) valueGetters))
 
+sheetsToJSON :: FilePath -> Text -> Bool -> IO ByteString
+sheetsToJSON file what header = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let sheetmap = getNonEmptySheets xlsx
+  let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
+  return $ encode $ (sheetsToMapMap fcellmapmap header (DM.mapKeys (\_ -> what) valueGetters)) DM.! what
+
 -- below : useless now, thanks to valueGetters
 -- sheetToCDF :: FilePath -> Text -> Bool -> IO ByteString
 -- sheetToCDF file sheetname header = do
