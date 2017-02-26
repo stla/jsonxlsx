@@ -11,7 +11,7 @@ copyright:           2017 Stéphane Laurent
 category:            Spreadsheet
 build-type:          Simple
 cabal-version:       >=1.22
-extra-source-files:  README.md, StartEnd.c
+extra-source-files:  README.md
 
 -- stack install --flag jsonxlsx:exe
 flag exe
@@ -40,6 +40,7 @@ library
                      , ByteStringToBase64
                      , TestsXLSX
   default-language:    Haskell2010
+  ghc-options:        -fwarn-unused-imports
   build-depends:       base >= 4.7 && < 5
                      , xlsx
                      , aeson
@@ -99,6 +100,7 @@ executable xlsx2json
     buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainRead.hs
+  ghc-options:        -fwarn-unused-imports
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -158,6 +160,9 @@ executable xlsx2jsonR
     buildable: False
   hs-source-dirs:      src-dlls
   main-is:             MainRead.hs
+  c-sources:           StartEnd.c
+  other-extensions:    CPP
+  CPP-Options:         -DPORTABLE
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -165,9 +170,10 @@ executable xlsx2jsonR
                      , bytestring
                      , text
   if os(windows)
-    ghc-options:       -shared -fPIC StartEnd.c
+    ghc-options:       -fwarn-unused-imports -shared -fPIC
   else
-    ghc-options:       -shared -fPIC -dynamic -lHSrts-ghc8.0.2 StartEnd.c
+    ghc-options:       -shared -fPIC -dynamic StartEnd.c
+    extra-libraries:    HSrts-ghc8.0.2
 
 
 source-repository head
