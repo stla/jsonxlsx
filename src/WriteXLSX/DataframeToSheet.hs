@@ -2,14 +2,12 @@
 {-# LANGUAGE TemplateHaskell   #-}
 -- {-# LANGUAGE FlexibleContexts #-}
 -- {-# LANGUAGE  RankNTypes #-}
-
 module WriteXLSX.DataframeToSheet (
     dfToCells
     , dfToSheet
     , dfToCellsWithComments
     , dfToSheetWithComments
     ) where
-
 import           Codec.Xlsx.Types
 import           Control.Lens
 import           Data.Aeson                    (decode)
@@ -19,7 +17,7 @@ import           Data.Aeson.Types              (Array, Object, Value,
                                                 Value (Null))
 import           Data.ByteString.Lazy          (ByteString)
 import           Data.ByteString.Lazy.Internal (unpackChars)
-import Data.ByteString.Lazy.UTF8 (fromString)
+import           Data.ByteString.Lazy.UTF8     (fromString)
 import           Data.HashMap.Lazy             (keys)
 import qualified Data.HashMap.Lazy             as DHL
 import qualified Data.Map.Lazy                 as DML
@@ -28,16 +26,19 @@ import           Data.Scientific               (toRealFloat)
 import           Data.Text                     (Text)
 import qualified Data.Text                     as T
 import qualified Data.Vector                   as DV
-import           Text.Regex
 import           Empty
-
+import           Text.Regex
 -- import qualified Text.Regex.Posix.ByteString.Lazy as RB
 -- import qualified Text.Regex.Posix as TRP
 -- import Data.Either.Extra
 -- import System.IO.Unsafe (unsafePerformIO)
---
+
+-- thanks to TemplateHaskell
 makeLenses ''Comment
---
+
+-- problem: decode does not preserve order of keys
+-- (seems related to capital/noncapital first letter)
+
 -- extractKeysByteString :: ByteString -> [ByteString]
 -- extractKeysByteString = f (TRP.makeRegex "\"([^:|^\\,]+)\":")
 --                               where f :: RB.Regex -> ByteString -> [ByteString]
@@ -45,8 +46,7 @@ makeLenses ''Comment
 --                                       case fromRight' (unsafePerformIO $ RB.regexec regex json) of
 --                                         Nothing -> []
 --                                         (Just (_, _, after, matched)) -> matched ++ (f regex after)
-
--- ESSAYE CA Y'A PAS DE IO: https://hackage.haskell.org/package/regex-tdfa-1.2.2/docs/Text-Regex-TDFA-ByteString-Lazy.html
+-- without IO: https://hackage.haskell.org/package/regex-tdfa-1.2.2/docs/Text-Regex-TDFA-ByteString-Lazy.html
 
 extractKeys :: Regex -> String -> [String]
 extractKeys reg s =
@@ -54,10 +54,8 @@ extractKeys reg s =
     Nothing                     -> []
     Just (_, _, after, matched) -> matched ++ extractKeys reg after
 
--- problem: decode does not preserve order of keys
--- c'est à cause de la minuscule de include on dirait
-
--- caution UTF-8
+-- take care of UTF-8
+-- alternative: http://stackoverflow.com/questions/42013076/convert-unescaped-unicode-to-utf8-integer
 dfToColumns :: String -> ([Array], [Text])
 dfToColumns df = (map (\key -> valueToArray $ fromJust $ DHL.lookup key dfObject) colnames, colnames)
                    where dfObject = fromJust (decode (fromString df) :: Maybe Object)
@@ -72,7 +70,6 @@ valueToArray value = x
 
 columnToExcelColumn :: Array -> [Maybe CellValue]
 columnToExcelColumn column = DV.toList $ DV.map valueToCellValue column
-
 
 valueToCellValue :: Value -> Maybe CellValue
 valueToCellValue value =
@@ -93,17 +90,7 @@ valueToComment value author =
                                set commentText (XlsxText x) emptyComment
         Null -> Nothing
 
-
--- j :: Int -- column index
--- j = 1
--- excelcol = columnToExcelColumn $ (dfToColumns df colnames) !! j
--- x = map (\(i, maybeCell) -> ((i,j), set cellValue maybeCell emptyCell)) $
---   zip [1..length excelcol] excelcol
--- map sur j et concat
-
--- je rajoute ncols pour ColumnWidths
--- les widths sont peut-être auto pour les nombres et les dates (comme Excel 2003)
-
+-- ncols used for ColumnWidths
 dfToCells :: String -> Bool -> (CellMap, Int)
 dfToCells df header = (DML.fromList $ concatMap f [1..ncols], ncols)
       where f j = map (\(i, maybeCell) -> ((i,j), set cellValue maybeCell emptyCell)) $
@@ -114,17 +101,6 @@ dfToCells df header = (DML.fromList $ concatMap f [1..ncols], ncols)
                                         else excelcol0
             (dfCols, colnames) = dfToColumns df
             ncols = length dfCols
-
--- résultat de widths : Excel répare...
---  je crois qu'il faut rajouter un "Fill" dans _styleSheetFills du styleSheet ! :-(
--- dans Book1Comments j'ai une width et :
--- <fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/>
--- pour en être sur : write un fichier, unzip, repair with Excel, unzip, compare !
--- il faudrait une fonction qui lit le ColumnsWidth dans le ws et qui crée le StyleSheet
--- (de même pour les CellXfs)
--- j'ai mis le Fill et Excel répare encore !
--- j'ai jeté un oeil, Excel ajoute un borderdiagonal dans l'unique Border
--- essaye _borderDiagonal = Just (BorderStyle {_borderStyleColor = Nothing, _borderStyleLine = Nothing})
 
 dfToSheet :: String -> Bool -> Worksheet
 dfToSheet df header = set wsColumns [widths] $ set wsCells cells emptyWorksheet

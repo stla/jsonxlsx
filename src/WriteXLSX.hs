@@ -1,31 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
--- {-# LANGUAGE TemplateHaskell #-}
 module WriteXLSX
     where
-import           Codec.Xlsx                 (atSheet, def, fromXlsx,
-                                             renderStyleSheet, styleSheetFills,
-                                             xlSheets, xlStyles)
-import Codec.Xlsx.Types.StyleSheet
-import           Control.Lens               (set, (&), (?~))
-import Data.ByteString.Lazy (ByteString)
-import qualified Data.ByteString.Lazy       as L
-import qualified Data.Text as T
-import Data.Text (Text)
-import           Data.Maybe                 (fromMaybe)
+import           ByteStringToBase64
+import           Codec.Xlsx                  (atSheet, def, fromXlsx,
+                                              renderStyleSheet, styleSheetFills,
+                                              xlSheets, xlStyles)
+import           Codec.Xlsx.Types.StyleSheet
+import           Control.Lens                (set, (&), (?~))
+import           Data.ByteString.Lazy        (ByteString)
+import qualified Data.ByteString.Lazy        as L
+import           Data.Maybe                  (fromMaybe)
+import           Data.Text                   (Text)
+import qualified Data.Text                   as T
 import           Data.Time.Clock.POSIX
+import           Empty                       (emptyFill, emptyStyleSheet,
+                                              emptyXlsx, gray125Fill)
 import           WriteXLSX.DataframeToSheet
-import           Empty            (emptyFill, emptyStyleSheet,
-                                             emptyXlsx, gray125Fill)
-import ByteStringToBase64
 
+-- temporary tests
 emptyFont :: Font
 emptyFont = set fontName (Just "Normal") $ head $ _styleSheetFonts emptyStyleSheet
 
+-- temporary tests
 ss = set styleSheetFonts [emptyFont] emptyStyleSheet
-
 stylesheet = set styleSheetFills [emptyFill, gray125Fill] emptyStyleSheet
-
-
 
 writeWithStyleSheet :: String -> Bool -> FilePath -> Bool -> IO ByteString
 writeWithStyleSheet jsondf header outfile base64 = do
@@ -38,7 +36,6 @@ writeWithStyleSheet jsondf header outfile base64 = do
   if base64
     then return $ byteStringToBase64 lbs "xlsx"
     else return L.empty
-
 
 write1 :: String -> Bool -> FilePath -> Bool -> IO ByteString
 write1 jsondf header outfile base64 = do

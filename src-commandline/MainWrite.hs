@@ -1,24 +1,22 @@
 module Main
   where
-import WriteXLSX
-import Options.Applicative
-import Data.Monoid ((<>))
-import qualified Data.Text as T
-import Data.ByteString.Lazy.Internal (packChars)
-import qualified Data.ByteString.Lazy.Char8 as L
-import Data.ByteString.Lazy.UTF8 (fromString)
+import qualified Data.ByteString.Lazy.Char8    as L
+import           Data.ByteString.Lazy.Internal (packChars)
+import           Data.ByteString.Lazy.UTF8     (fromString)
+import           Data.Monoid                   ((<>))
+import qualified Data.Text                     as T
+import           Options.Applicative
+import           WriteXLSX
 
 
 data Arguments = Arguments
-  { df :: String
+  { df       :: String
   , colnames :: Bool
   , comments :: Maybe String
-  , author :: Maybe String
-  , outfile :: String
-  , base64 :: Bool }
+  , author   :: Maybe String
+  , outfile  :: String
+  , base64   :: Bool }
 
--- FINALEMENT C PEUT ETRE MIEUX DE NE PAS UTILISER BYTESTRING
--- (PUISQU IL Y A UN SEUL DECODE)
 writeXLSX :: Arguments -> IO()
 writeXLSX (Arguments df colnames Nothing _ outfile base64) =
   do
@@ -38,6 +36,7 @@ run = Arguments
          <> help "Data as JSON string" )
      <*>  switch
           ( long "header"
+         <> short 'H'
          <> help "Whether to include column headers" )
      <*> optional
            (strOption
