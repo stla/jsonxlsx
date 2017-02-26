@@ -165,9 +165,9 @@ executable xlsx2jsonR
                      , bytestring
                      , text
   if os(windows)
-    ghc-options:       -O2 -shared -fPIC StartEnd.c
+    ghc-options:       -shared -fPIC StartEnd.c
   else
-    ghc-options:       -O2 -shared -fPIC -dynamic -lHSrts-ghc8.0.2 StartEnd.c
+    ghc-options:       -shared -fPIC -dynamic -lHSrts-ghc8.0.2 StartEnd.c
 
 
 source-repository head
