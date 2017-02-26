@@ -1,5 +1,4 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE OverloadedStrings #-}
 module MainRead
   where
 import Foreign
@@ -16,11 +15,14 @@ xlsx2jsonR file sheetname what header result = do
   sheetname <- (>>=) (peek sheetname) peekCString
   what <- (>>=) (peek what) peekCString
   header <- peek header
+  let colnames = (fromIntegral header :: Int) /= 0
   -- read
   let keys = splitOn (pack ",") (pack what)
   json <- case length keys of
-               1 -> sheetToJSON file (pack sheetname) (head keys) (toInteger header /= 0) Nothing Nothing
-               _ -> sheetToJSONlist file (pack sheetname) keys (toInteger header /= 0) Nothing Nothing
+    1 -> do
+           sheetToJSON file (pack sheetname) (head keys) colnames Nothing Nothing
+    _ -> do
+           sheetToJSONlist file (pack sheetname) keys colnames Nothing Nothing
   -- return
   jsonC <- newCString $ unpackChars json
   poke result $ jsonC

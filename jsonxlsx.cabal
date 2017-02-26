@@ -69,6 +69,7 @@ executable json2xlsx
     buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainWrite.hs
+  ghc-options:        -fwarn-unused-imports -optc-Os
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -100,7 +101,9 @@ executable xlsx2json
     buildable: False
   hs-source-dirs:      src-commandline
   main-is:             MainRead.hs
-  ghc-options:        -fwarn-unused-imports
+  ghc-options:        -fwarn-unused-imports -O3 -optc-Os
+  other-extensions:    CPP
+  CPP-Options:         -DPORTABLE
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -161,8 +164,6 @@ executable xlsx2jsonR
   hs-source-dirs:      src-dlls
   main-is:             MainRead.hs
   c-sources:           StartEnd.c
-  other-extensions:    CPP
-  CPP-Options:         -DPORTABLE
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -170,9 +171,9 @@ executable xlsx2jsonR
                      , bytestring
                      , text
   if os(windows)
-    ghc-options:       -fwarn-unused-imports -shared -fPIC
+    ghc-options:       -fwarn-unused-imports -O3 -optc-Os -shared -fPIC
   else
-    ghc-options:       -shared -fPIC -dynamic StartEnd.c
+    ghc-options:       -shared -fPIC -dynamic
     extra-libraries:    HSrts-ghc8.0.2
 
 
