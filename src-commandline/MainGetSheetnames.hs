@@ -4,7 +4,7 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import           Data.Monoid                ((<>))
 import qualified Data.Text                  as T
 import           Options.Applicative
-import           ReadXLSX                   (getSheetnames)
+import           ReadXLSX2                  (getSheetnames)
 
 data Arguments = Arguments
   { file :: String }

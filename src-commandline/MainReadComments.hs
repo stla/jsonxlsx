@@ -4,7 +4,7 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import           Data.Monoid                ((<>))
 import qualified Data.Text                  as T
 import           Options.Applicative
-import           ReadXLSX                   (readComments)
+import           ReadXLSX2                  (readComments)
 
 data Arguments = Arguments
   { file :: String
@@ -33,6 +33,7 @@ run = Arguments
          <> help "Sheet name" )
      <*>  switch
           ( long "header"
+         <> short 'H'  
          <> help "Whether the sheet has column headers" )
      <*> optional (option auto
           ( metavar "FIRSTROW"

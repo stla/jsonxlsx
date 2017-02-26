@@ -26,6 +26,7 @@ library
                      , WriteXLSX.DataframeToSheet
                      , Empty
                      , ReadXLSX
+                     , ReadXLSX2
                      , ReadXLSX.Internal
                      , ReadXLSX.SheetToDataframe
                      , ReadXLSX.SheetToList
@@ -71,13 +72,13 @@ executable json2xlsx
                      , text
                      , utf8-string
 
-executable xlsx2json
+executable xlsx2json2
   if flag(exe)
     buildable: True
   else
     buildable: False
   hs-source-dirs:      src-commandline
-  main-is:             MainRead.hs
+  main-is:             MainRead2.hs
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -86,13 +87,13 @@ executable xlsx2json
                      , bytestring
                      , text
 
-executable xlsx2json2
+executable xlsx2json
   if flag(exe)
     buildable: True
   else
     buildable: False
   hs-source-dirs:      src-commandline
-  main-is:             MainReadCDF.hs
+  main-is:             MainRead.hs
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5

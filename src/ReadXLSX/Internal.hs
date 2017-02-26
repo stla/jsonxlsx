@@ -2,40 +2,41 @@
 module ReadXLSX.Internal
   where
 import           Codec.Xlsx
-import Codec.Xlsx.Formatted
-import Control.Lens
-import           Data.Map                      (Map)
-import qualified Data.Map                      as DM
-import           Data.Maybe                    (fromMaybe, isNothing, isJust)
-import           Data.Text                     (Text)
-import qualified Data.Text                     as T
-import           Empty                         (emptyCell, emptyFormattedCell)
-import           ExcelDates                    (intToDate)
-import           Data.Aeson.Types              (Array, Object, Value,
-                                                Value (Number), Value (String),
-                                                Value (Bool), Value (Array),
-                                                Value (Null))
-import qualified Data.Vector                   as DV
+import           Codec.Xlsx.Formatted
+import           Control.Lens
+import           Data.Aeson.Types           (Array, Object, Value,
+                                             Value (Number), Value (String),
+                                             Value (Bool), Value (Array),
+                                             Value (Null))
+import qualified Data.ByteString.Lazy       as L
+import           Data.Either.Extra          (fromRight')
 import           Data.Either.Extra
-import           Data.HashMap.Strict.InsOrd    (InsOrdHashMap)
-import qualified Data.HashMap.Strict.InsOrd    as DHSI
-import           Data.List.UniqueUnsorted      (count)
-import           Data.Scientific               (Scientific, floatingOrInteger,
-                                                fromFloatDigits)
-import qualified Data.Set                      as DS
-import qualified TextShow                      as TS
+import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+import qualified Data.HashMap.Strict.InsOrd as DHSI
+import           Data.List.UniqueUnsorted   (count)
+import           Data.Map                   (Map)
+import qualified Data.Map                   as DM
+import           Data.Maybe                 (fromMaybe, isJust, isNothing)
+import           Data.Scientific            (Scientific, floatingOrInteger,
+                                             fromFloatDigits)
+import qualified Data.Set                   as DS
+import           Data.Text                  (Text)
+import qualified Data.Text                  as T
+import qualified Data.Vector                as DV
+import           Empty                      (emptyCell, emptyFormattedCell)
+import           ExcelDates                 (intToDate)
+import qualified TextShow                   as TS
 
 type FormattedCellMap = Map (Int, Int) FormattedCell
-
 
 cellToCellValue :: Cell -> Value
 cellToCellValue cell =
   case _cellValue cell of
     Just (CellDouble x) -> Number (fromFloatDigits x)
-    Just (CellText x) -> String x
-    Just (CellBool x) -> Bool x
-    Nothing -> Null
-    Just (CellRich x) -> String (T.concat $ _richTextRunText <$> x)
+    Just (CellText x)   -> String x
+    Just (CellBool x)   -> Bool x
+    Nothing             -> Null
+    Just (CellRich x)   -> String (T.concat $ _richTextRunText <$> x)
 
 hasDateFormat :: FormattedCell -> Bool
 hasDateFormat fcell =
@@ -47,9 +48,9 @@ hasDateFormat fcell =
 fcellToCellFormat :: FormattedCell -> Value
 fcellToCellFormat fcell =
   case view formatNumberFormat $ view formattedFormat fcell of
-    Just (StdNumberFormat x) -> String (T.pack (show x))
+    Just (StdNumberFormat x)  -> String (T.pack (show x))
     Just (UserNumberFormat x) -> String x
-    Nothing -> Null
+    Nothing                   -> Null
 
 fcellToCellType :: FormattedCell -> Value
 fcellToCellType fcell
@@ -58,9 +59,9 @@ fcellToCellType fcell
   | otherwise =
       case cellvalue of
         Just (CellDouble _) -> String "number"
-        Just (CellText _) -> String "text"
-        Just (CellBool _) -> String "boolean"
-        Just (CellRich _) -> String "richtext"
+        Just (CellText _)   -> String "text"
+        Just (CellBool _)   -> String "boolean"
+        Just (CellRich _)   -> String "richtext"
   where cellvalue = (_cellValue . _formattedCell) fcell
 
 fcellToCellValue :: FormattedCell -> Value
@@ -69,8 +70,8 @@ fcellToCellValue fcell =
     then
       case (_cellValue . _formattedCell) fcell of
         Just (CellDouble x) -> String (intToDate $ round x)
-        Nothing -> Null
-        _ -> String "anomalous date detected!" -- pb file Walter
+        Nothing             -> Null
+        _                   -> String "anomalous date detected!" -- pb file Walter
     else
       (cellToCellValue . _formattedCell) fcell
 
@@ -163,3 +164,15 @@ filterFormattedCellMap firstRow lastRow = DM.filterWithKey f
 
 cleanFormattedCellMap :: FormattedCellMap -> FormattedCellMap
 cleanFormattedCellMap = DM.filter (\fcell -> (isJust . _cellValue . _formattedCell) fcell || (isJust . _cellComment . _formattedCell) fcell)
+
+--
+-- read files
+--
+
+getXlsxAndStyleSheet :: FilePath -> IO (Xlsx, StyleSheet)
+getXlsxAndStyleSheet file =
+  do
+    bs <- L.readFile file
+    let xlsx = toXlsx bs
+    let stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
+    return (xlsx, stylesheet)
