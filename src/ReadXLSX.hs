@@ -6,6 +6,7 @@ import           Codec.Xlsx.Formatted
 import           Control.Lens         ((^?))
 import           Data.Aeson           (Value, encode)
 import           Data.ByteString.Lazy (ByteString)
+import Data.ByteString.Lazy.Internal (unpackChars)
 import           Data.Map             (Map)
 import qualified Data.Map             as DM
 import           Data.Maybe           (fromJust, fromMaybe, isJust)
@@ -17,6 +18,7 @@ import           ReadXLSX.Internal    (cleanCellMap, fcellToCellComment,
                                        getNonEmptySheets, getXlsxAndStyleSheet,
                                        isNonEmptyWorksheet)
 import           ReadXLSX.SheetToList
+import Control.Monad ((<=<))
 
 valueGetters :: Map Text (FormattedCell -> Value)
 valueGetters = DM.fromList
@@ -61,6 +63,17 @@ sheetToJSONlist file sheetname what header firstRow lastRow = do
       return . encode $
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
                   T.intercalate ", " sheets]
+
+sheetToJSON2 :: FilePath -> Text -> Text -> Bool -> Maybe Int -> Maybe Int -> IO String
+sheetToJSON2 file sheetname what header firstRow lastRow = do
+  x <- sheetToJSON file sheetname what header firstRow lastRow
+  return $ unpackChars x
+
+sheetToJSONlist2 :: FilePath -> Text -> [Text] -> Bool -> Maybe Int -> Maybe Int -> IO String
+sheetToJSONlist2 file sheetname what header firstRow lastRow = do
+  x <- sheetToJSONlist file sheetname what header firstRow lastRow
+  return $ unpackChars x
+
 
 sheetsToJSONlist :: FilePath -> [Text] -> Bool -> IO ByteString
 sheetsToJSONlist file what header = do

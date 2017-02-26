@@ -18,11 +18,20 @@ xlsx2jsonR file sheetname what header result = do
   let colnames = (fromIntegral header :: Int) /= 0
   -- read
   let keys = splitOn (pack ",") (pack what)
-  json <- case length keys of
-    1 -> do
-           sheetToJSON file (pack sheetname) (head keys) colnames Nothing Nothing
-    _ -> do
-           sheetToJSONlist file (pack sheetname) keys colnames Nothing Nothing
+  if length keys == 1
+    then do
+      json <- sheetToJSON2 file (pack sheetname) (head keys) colnames Nothing Nothing
+      jsonC <- newCString json
+      poke result $ jsonC
+    else do
+      json <- sheetToJSONlist2 file (pack sheetname) keys colnames Nothing Nothing
+      jsonC <- newCString json
+      poke result $ jsonC
+  -- json <- case length keys of
+  --   1 -> do
+  --          sheetToJSON file (pack sheetname) (head keys) colnames Nothing Nothing
+  --   _ -> do
+  --          sheetToJSONlist file (pack sheetname) keys colnames Nothing Nothing
   -- return
-  jsonC <- newCString $ unpackChars json
-  poke result $ jsonC
+  -- jsonC <- newCString $ unpackChars json
+  -- poke result $ jsonC

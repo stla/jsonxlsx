@@ -14,3 +14,5 @@ ztemp.hs
 *.dll
 *.dll.a
 *.so
+*.o
+*.a
