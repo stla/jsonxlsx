@@ -11,12 +11,17 @@ copyright:           2017 Stéphane Laurent
 category:            Spreadsheet
 build-type:          Simple
 cabal-version:       >=1.22
-extra-source-files:  README.md
+extra-source-files:  README.md, StartEnd.c
 
 -- stack install --flag jsonxlsx:exe
 flag exe
     description:
         Build the executables.
+    default: False
+    manual:  True
+flag dll
+    description:
+        Build the dlls.
     default: False
     manual:  True
 
@@ -145,3 +150,26 @@ executable getXLSXsheets
                      , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
+
+executable xlsx2jsonR
+  if flag(dll)
+    buildable: True
+  else
+    buildable: False
+  hs-source-dirs:      src-dlls
+  main-is:             MainRead.hs
+  other-modules:
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , jsonxlsx
+                     , bytestring
+                     , text
+  if os(windows)
+    ghc-options:       -O2 -shared -fPIC StartEnd.c
+  else
+    ghc-options:       -O2 -shared -fPIC -dynamic -lHSrts-ghc8.0.2 StartEnd.c
+
+
+source-repository head
+  type:     git
+  location: https://github.com/stla/jsonxlsx

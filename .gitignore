@@ -11,3 +11,6 @@ src/ReadXLSX/SheetToDataframeString.hs
 src/WriteXLSX/DataframeToSheetString.hs
 src/ReadXLSX/ReadCommentsDraft.hs
 ztemp.hs
+*.dll
+*.dll.a
+*.so
