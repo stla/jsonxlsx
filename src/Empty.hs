@@ -4,7 +4,6 @@ module Empty
 import Codec.Xlsx.Types -- (Cell, Worksheet, Comment, XlsxText)
 import Codec.Xlsx.Formatted
 import qualified Data.Map.Lazy as DML
-import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Maybe (fromJust)
 import Control.Lens (set)

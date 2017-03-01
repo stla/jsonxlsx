@@ -16,3 +16,6 @@ ztemp.hs
 *.so
 *.o
 *.a
+*.txt
+*.h
+*.hi

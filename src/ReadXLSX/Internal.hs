@@ -9,8 +9,7 @@ import           Data.Aeson.Types           (Array, Object, Value,
                                              Value (Bool), Value (Array),
                                              Value (Null))
 import qualified Data.ByteString.Lazy       as L
-import           Data.Either.Extra          (fromRight')
-import           Data.Either.Extra
+import           Data.Either.Extra          (fromRight', fromLeft', isRight)
 import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as DHSI
 import           Data.List.UniqueUnsorted   (count)
@@ -29,21 +28,47 @@ import qualified TextShow                   as TS
 
 type FormattedCellMap = Map (Int, Int) FormattedCell
 
-cellToCellValue :: Cell -> Value
-cellToCellValue cell =
-  case _cellValue cell of
+cellValueToValue :: Maybe CellValue -> Value
+cellValueToValue cellvalue =
+  case cellvalue of
     Just (CellDouble x) -> Number (fromFloatDigits x)
     Just (CellText x)   -> String x
     Just (CellBool x)   -> Bool x
     Nothing             -> Null
     Just (CellRich x)   -> String (T.concat $ _richTextRunText <$> x)
 
+cellToCellValue :: Cell -> Value
+cellToCellValue = cellValueToValue . _cellValue
+
 hasDateFormat :: FormattedCell -> Bool
 hasDateFormat fcell =
   case view formatNumberFormat $ view formattedFormat fcell of
-    Just (StdNumberFormat x) -> x `elem` [NfMmDdYy, NfDMmmYy, NfDMmm, NfMmmYy, NfHMm12Hr, NfHMmSs12Hr, NfHMm, NfHMmSs, NfMdyHMm]
-    Just (UserNumberFormat x) -> x `elem` ["yyyy\\-mm\\-dd;@"]
+    Just (StdNumberFormat x) -> x `elem` [NfMmDdYy, NfDMmmYy, NfDMmm,
+                                          NfMmmYy, NfHMm12Hr, NfHMmSs12Hr,
+                                          NfHMm, NfHMmSs, NfMdyHMm]
+    Just (UserNumberFormat x) -> x `elem` ["yyyy\\-mm\\-dd;@", "[$-F800]dddd\\,\\ mmmm\\ dd\\,\\ yyyy",
+                                           "d/mm/yyyy;@", "d/mm/yy;@",
+                                           "dd\\.mm\\.yy;@", "yy/mm/dd;@",
+                                           "dd\\-mm\\-yy;@", "dd/mm/yyyy;@",
+                                           "[$-80C]dddd\\ d\\ mmmm\\ yyyy;@",
+                                           "[$-80C]d\\ mmmm\\ yyyy;@",
+                                           "[$-80C]dd\\-mmm\\-yy;@", "m/d;@", "m/d/yy;@", "mm/dd/yy;@",
+                                           "[$-409]d\\-mmm\\-yy;@", "[$-409]dd\\-mmm\\-yy;@",
+                                           "[$-409]mmm\\-yy;@", "[$-409]mmmm\\-yy;@", "[$-409]mmmm\\ d\\,\\ yyyy;@",
+                                           "[$-409]m/d/yy\\ h:mm\\ AM/PM;@", "m/d/yy\\ h:mm;@", "m/d/yy\\ h:mm;@",
+                                           "[$-409]d\\-mmm\\-yyyy;@", "[$-409]mmmmm\\-yy;@", "[$-409]mmmmm;@"]
     Nothing -> False
+
+isValidDateCell :: FormattedCell -> Bool
+isValidDateCell fcell =
+  if hasDateFormat fcell
+    then
+      case (_cellValue . _formattedCell) fcell of
+        Just (CellDouble _) -> True
+        Nothing             -> True
+        _                   -> False
+    else
+      False
 
 fcellToCellFormat :: FormattedCell -> Value
 fcellToCellFormat fcell =
@@ -55,7 +80,7 @@ fcellToCellFormat fcell =
 fcellToCellType :: FormattedCell -> Value
 fcellToCellType fcell
   | isNothing cellvalue = Null
-  | hasDateFormat fcell = String "date"
+  | isValidDateCell fcell = String "date"
   | otherwise =
       case cellvalue of
         Just (CellDouble _) -> String "number"
@@ -68,12 +93,14 @@ fcellToCellValue :: FormattedCell -> Value
 fcellToCellValue fcell =
   if hasDateFormat fcell
     then
-      case (_cellValue . _formattedCell) fcell of
+      case _cellValue cell of
         Just (CellDouble x) -> String (intToDate $ round x)
-        Nothing             -> Null
-        _                   -> String "anomalous date detected!" -- pb file Walter
+        _                   -> cellToCellValue cell
+        -- Nothing             -> Null
+        -- _                   -> String "anomalous date detected!" -- pb file Walter
     else
-      (cellToCellValue . _formattedCell) fcell
+      cellToCellValue cell
+  where cell = _formattedCell fcell
 
 --
 -- COMMENTS

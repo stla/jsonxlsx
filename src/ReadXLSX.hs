@@ -3,22 +3,25 @@ module ReadXLSX
     where
 import           Codec.Xlsx
 import           Codec.Xlsx.Formatted
-import           Control.Lens         ((^?))
-import           Data.Aeson           (Value, encode)
-import           Data.ByteString.Lazy (ByteString)
-import Data.ByteString.Lazy.Internal (unpackChars)
-import           Data.Map             (Map)
-import qualified Data.Map             as DM
-import           Data.Maybe           (fromJust, fromMaybe, isJust)
-import           Data.Text            (Text)
-import qualified Data.Text            as T
-import           ReadXLSX.Internal    (cleanCellMap, fcellToCellComment,
-                                       fcellToCellFormat, fcellToCellType,
-                                       fcellToCellValue, filterFormattedCellMap,
-                                       getNonEmptySheets, getXlsxAndStyleSheet,
-                                       isNonEmptyWorksheet)
+import           Control.Lens                  ((^?))
+import           Data.Aeson                    (Value, encode)
+import           Data.ByteString.Lazy          (ByteString)
+import           Data.ByteString.Lazy.Internal (unpackChars)
+import           Data.Map                      (Map)
+import qualified Data.Map                      as DM
+import           Data.Maybe                    (fromJust)
+import           Data.Text                     (Text)
+import qualified Data.Text                     as T
+import           ReadXLSX.Internal             (fcellToCellComment,
+                                                fcellToCellFormat,
+                                                fcellToCellType,
+                                                fcellToCellValue,
+                                                filterFormattedCellMap,
+                                                getNonEmptySheets,
+                                                getXlsxAndStyleSheet,
+                                                isNonEmptyWorksheet)
 import           ReadXLSX.SheetToList
-import Control.Monad ((<=<))
+-- import Control.Monad ((<=<))
 
 valueGetters :: Map Text (FormattedCell -> Value)
 valueGetters = DM.fromList
