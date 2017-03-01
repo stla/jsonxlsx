@@ -4,27 +4,21 @@ module ReadXLSX.Internal
 import           Codec.Xlsx
 import           Codec.Xlsx.Formatted
 import           Control.Lens
-import           Data.Aeson.Types           (Array, Object, Value,
-                                             Value (Number), Value (String),
-                                             Value (Bool), Value (Array),
-                                             Value (Null))
-import qualified Data.ByteString.Lazy       as L
-import           Data.Either.Extra          (fromRight', fromLeft', isRight)
-import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
-import qualified Data.HashMap.Strict.InsOrd as DHSI
-import           Data.List.UniqueUnsorted   (count)
-import           Data.Map                   (Map)
-import qualified Data.Map                   as DM
-import           Data.Maybe                 (fromMaybe, isJust, isNothing)
-import           Data.Scientific            (Scientific, floatingOrInteger,
-                                             fromFloatDigits)
-import qualified Data.Set                   as DS
-import           Data.Text                  (Text)
-import qualified Data.Text                  as T
-import qualified Data.Vector                as DV
-import           Empty                      (emptyCell, emptyFormattedCell)
-import           ExcelDates                 (intToDate)
-import qualified TextShow                   as TS
+import           Data.Aeson.Types     (Value, Value (Number), Value (String),
+                                       Value (Bool), Value (Null))
+import qualified Data.ByteString.Lazy as L
+import           Data.Either.Extra    (fromLeft', fromRight', isRight)
+import           Data.List            (elemIndex, elemIndices)
+import           Data.Map             (Map)
+import qualified Data.Map             as DM
+import           Data.Maybe           (fromJust, fromMaybe, isJust, isNothing)
+import           Data.Scientific      (floatingOrInteger, fromFloatDigits)
+import qualified Data.Set             as DS
+import           Data.Text            (Text)
+import qualified Data.Text            as T
+import           Empty                (emptyCell, emptyFormattedCell)
+import           ExcelDates           (intToDate)
+import qualified TextShow             as TS
 
 type FormattedCellMap = Map (Int, Int) FormattedCell
 
@@ -120,7 +114,48 @@ cellToCommentValue cell =
 fcellToCellComment :: FormattedCell -> Value
 fcellToCellComment = cellToCommentValue . _formattedCell
 
--- used for the headers only
+--
+-- filters
+--
+cleanCellMap :: CellMap -> CellMap
+cleanCellMap = DM.filter (\cell -> (isJust . _cellValue) cell || (isJust . _cellComment) cell)
+
+isNonEmptyWorksheet :: Worksheet -> Bool
+isNonEmptyWorksheet ws = cleanCellMap (_wsCells ws) /= DM.empty
+
+getNonEmptySheets :: Xlsx -> Map Text Worksheet
+getNonEmptySheets xlsx = DM.fromList $ filter (\sheet -> isNonEmptyWorksheet (snd sheet)) (_xlSheets xlsx)
+
+filterCellMap :: Maybe Int -> Maybe Int -> CellMap -> CellMap
+filterCellMap firstRow lastRow = DM.filterWithKey f
+              where f (i,j) cell = i >= fr && i <= lr && (isJust . _cellValue) cell
+                    fr = fromMaybe 1 firstRow
+                    lr = fromMaybe (maxBound::Int) lastRow
+
+filterFormattedCellMap :: Maybe Int -> Maybe Int -> FormattedCellMap -> FormattedCellMap
+filterFormattedCellMap firstRow lastRow = DM.filterWithKey f
+              where f (i,j) fcell = i >= fr && i <= lr && ((isJust . _cellValue) cell || (isJust . _cellComment) cell)
+                                    where cell = _formattedCell fcell
+                    fr = fromMaybe 1 firstRow
+                    lr = fromMaybe (maxBound::Int) lastRow
+
+cleanFormattedCellMap :: FormattedCellMap -> FormattedCellMap
+cleanFormattedCellMap = DM.filter (\fcell -> (isJust . _cellValue . _formattedCell) fcell || (isJust . _cellComment . _formattedCell) fcell)
+
+--
+-- read files
+--
+getXlsxAndStyleSheet :: FilePath -> IO (Xlsx, StyleSheet)
+getXlsxAndStyleSheet file =
+  do
+    bs <- L.readFile file
+    let xlsx = toXlsx bs
+    let stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
+    return (xlsx, stylesheet)
+
+--
+-- headers
+--
 valueToText :: Value -> Maybe Text
 valueToText value =
   case value of
@@ -159,47 +194,30 @@ getHeader2 cells firstRow firstCol j =
     valueToText . fcellToCellValue $
       fromMaybe emptyFormattedCell (DM.lookup (firstRow, j) cells)
 
-colHeaders2 :: FormattedCellMap -> [Text]
-colHeaders2 cells = map (getHeader2 cells firstRow firstCol) colRange
-                   where (colRange, firstCol, firstRow) = cellsRange cells
+colHeaders2 :: FormattedCellMap -> Bool -> [Text]
+colHeaders2 cells fix =
+  if fix
+    then
+      fixHeaders headers
+    else
+      headers
+  where headers = map (getHeader2 cells firstRow firstCol) colRange
+                        where (colRange, firstCol, firstRow) = cellsRange cells
 
-
---
--- filters
---
-cleanCellMap :: CellMap -> CellMap
-cleanCellMap = DM.filter (\cell -> (isJust . _cellValue) cell || (isJust . _cellComment) cell)
-
-isNonEmptyWorksheet :: Worksheet -> Bool
-isNonEmptyWorksheet ws = cleanCellMap (_wsCells ws) /= DM.empty
-
-getNonEmptySheets :: Xlsx -> Map Text Worksheet
-getNonEmptySheets xlsx = DM.fromList $ filter (\sheet -> isNonEmptyWorksheet (snd sheet)) (_xlSheets xlsx)
-
-filterCellMap :: Maybe Int -> Maybe Int -> CellMap -> CellMap
-filterCellMap firstRow lastRow = DM.filterWithKey f
-              where f (i,j) cell = i >= fr && i <= lr && (isJust . _cellValue) cell
-                    fr = fromMaybe 1 firstRow
-                    lr = fromMaybe (maxBound::Int) lastRow
-
-filterFormattedCellMap :: Maybe Int -> Maybe Int -> FormattedCellMap -> FormattedCellMap
-filterFormattedCellMap firstRow lastRow = DM.filterWithKey f
-              where f (i,j) fcell = i >= fr && i <= lr && ((isJust . _cellValue) cell || (isJust . _cellComment) cell)
-                                    where cell = _formattedCell fcell
-                    fr = fromMaybe 1 firstRow
-                    lr = fromMaybe (maxBound::Int) lastRow
-
-cleanFormattedCellMap :: FormattedCellMap -> FormattedCellMap
-cleanFormattedCellMap = DM.filter (\fcell -> (isJust . _cellValue . _formattedCell) fcell || (isJust . _cellComment . _formattedCell) fcell)
-
---
--- read files
---
-
-getXlsxAndStyleSheet :: FilePath -> IO (Xlsx, StyleSheet)
-getXlsxAndStyleSheet file =
-  do
-    bs <- L.readFile file
-    let xlsx = toXlsx bs
-    let stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
-    return (xlsx, stylesheet)
+-- JE DEVRAIS TOUJOURS FAIRE fixHeaders, car Aeson supprime les duplicates !!
+fixHeaders :: [Text] -> [Text]
+fixHeaders colnames =
+  case colnames of
+    [ _ ] -> colnames
+    _     -> (head out) : (fixHeaders $ tail out)
+  where out = map append $ zip colnames [0 .. length colnames - 1]
+        append (name,index) =
+          case index of
+            0 -> if indices /= [] then T.concat [name, (T.pack . show) 1] else name
+            _ -> if index `elem` indices
+                   then
+                     T.concat [name, TS.showt $ 2 + fromJust (elemIndex index indices)]
+                   else
+                     name
+          where indices = map (+1) $ elemIndices x xs
+                x:xs = colnames

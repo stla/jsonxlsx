@@ -26,15 +26,15 @@ readXLSX (Arguments file sheet what colnames firstRow lastRow) =
       then
         if isJust sheet
           then
-            sheetToJSONlist file (pack (fromJust sheet)) keys colnames firstRow lastRow >>= L.putStrLn
+            sheetToJSONlist file (pack (fromJust sheet)) keys colnames True firstRow lastRow >>= L.putStrLn
           else
-            sheetsToJSONlist file keys colnames >>= L.putStrLn
+            sheetsToJSONlist file keys colnames True >>= L.putStrLn
       else
         if isJust sheet
           then
-            sheetToJSON file (pack (fromJust sheet)) (head keys) colnames firstRow lastRow >>= L.putStrLn
+            sheetToJSON file (pack (fromJust sheet)) (head keys) colnames True firstRow lastRow >>= L.putStrLn
           else
-            sheetsToJSON file (head keys) colnames >>= L.putStrLn
+            sheetsToJSON file (head keys) colnames True >>= L.putStrLn
 
 run :: Parser Arguments
 run = Arguments

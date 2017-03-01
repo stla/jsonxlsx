@@ -33,17 +33,17 @@ extractColumn fcells fcellToValue skip j = DV.fromList $
 --
 -- TODO: nullify ?
 
-sheetToMap :: FormattedCellMap -> (FormattedCell -> Value) -> Bool -> InsOrdHashMap Text Array
-sheetToMap fcells fcellToValue header = DHSI.fromList $
+sheetToMap :: FormattedCellMap -> (FormattedCell -> Value) -> Bool -> Bool -> InsOrdHashMap Text Array
+sheetToMap fcells fcellToValue header fixheaders = DHSI.fromList $
                                          map (\j -> (colnames !! j, extractColumn fcells fcellToValue skip (j+firstCol))) [0 .. length colnames - 1]
                                        where (skip, colnames) = if header
-                                                                   then (1, colHeaders2 fcells)
+                                                                   then (1, colHeaders2 fcells fixheaders)
                                                                    else (0, map (\j -> T.concat [T.pack "X", TS.showt j]) colRange)
                                              (colRange, firstCol, _) = cellsRange fcells
                                              -- cells = DM.map _formattedCell fcells -- to improve, no need that ; si pour headers ?
 
-sheetToMapMap :: FormattedCellMap ->  Bool -> Map Text (FormattedCell -> Value) -> Map Text (InsOrdHashMap Text Array)
-sheetToMapMap fcells header =
+sheetToMapMap :: FormattedCellMap ->  Bool -> Bool -> Map Text (FormattedCell -> Value) -> Map Text (InsOrdHashMap Text Array)
+sheetToMapMap fcells header fixheaders =
   DM.map
     (\valueGetter -> DHSI.fromList $
       map (\j -> (colnames !! j, extractColumn fcells valueGetter skip (j+firstCol)))
@@ -53,16 +53,16 @@ sheetToMapMap fcells header =
   --     map (\j -> (colnames !! j, extractColumn fcells (valuesMap DM.! key) skip (j+firstCol))) [0 .. length colnames - 1]))
   --     keys
   where (skip, colnames) = if header
-                              then (1, colHeaders2 fcells)
+                              then (1, colHeaders2 fcells fixheaders)
                               else (0, map (\j -> T.concat [T.pack "X", TS.showt j]) colRange)
         (colRange, firstCol, _) = cellsRange fcells
 --        keys = DM.keys valuesMap
 
 -- | Read several sheets
 --  sheetsToMapMap (Map sheetName -> FormattedCell) header (Map what -> value getter)
-sheetsToMapMap :: Map Text FormattedCellMap ->  Bool -> Map Text (FormattedCell -> Value) -> Map Text (Map Text (InsOrdHashMap Text Array))
-sheetsToMapMap fcellmapmap header gettermap =
-  DM.map (\fcellmap -> sheetToMapMap fcellmap header gettermap) fcellmapmap
+sheetsToMapMap :: Map Text FormattedCellMap -> Bool -> Bool -> Map Text (FormattedCell -> Value) -> Map Text (Map Text (InsOrdHashMap Text Array))
+sheetsToMapMap fcellmapmap header fixheaders gettermap =
+  DM.map (\fcellmap -> sheetToMapMap fcellmap header fixheaders gettermap) fcellmapmap
 
 
 
@@ -70,6 +70,6 @@ sheetsToMapMap fcellmapmap header gettermap =
 tttt :: IO (InsOrdHashMap Text Array)
 tttt = do
   fcm <- formattedcellsexample
-  return $ sheetToMap fcm fcellToCellValue True
+  return $ sheetToMap fcm fcellToCellValue True True
 
 --

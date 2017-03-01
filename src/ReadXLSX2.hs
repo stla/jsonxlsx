@@ -6,14 +6,13 @@ import           Control.Lens              ((^?))
 import           Data.Aeson                (Value, encode)
 import           Data.ByteString.Lazy      (ByteString)
 import qualified Data.ByteString.Lazy      as L
-import           Data.Map                  (Map)
 import qualified Data.Map                  as DM
-import           Data.Maybe                (fromJust, fromMaybe, isJust)
+import           Data.Maybe                (fromJust)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as T
 import           ReadXLSX.AllSheetsToJSON
-import           ReadXLSX.Internal         (cellToCommentValue, cleanCellMap,
-                                            filterCellMap, getXlsxAndStyleSheet,
+import           ReadXLSX.Internal         (cellToCommentValue, filterCellMap,
+                                            getXlsxAndStyleSheet,
                                             isNonEmptyWorksheet)
 import           ReadXLSX.SheetToDataframe
 -- import Data.Text.Lazy.Encoding (encodeUtf8)

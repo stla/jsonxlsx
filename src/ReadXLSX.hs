@@ -6,7 +6,7 @@ import           Codec.Xlsx.Formatted
 import           Control.Lens                  ((^?))
 import           Data.Aeson                    (Value, encode)
 import           Data.ByteString.Lazy          (ByteString)
-import           Data.ByteString.Lazy.Internal (unpackChars)
+-- import           Data.ByteString.Lazy.Internal (unpackChars)
 import           Data.Map                      (Map)
 import qualified Data.Map                      as DM
 import           Data.Maybe                    (fromJust)
@@ -31,8 +31,8 @@ valueGetters = DM.fromList
                  ("formats", fcellToCellFormat)]
 
 -- | e.g sheetToJSON file "Sheet1" "comments" True Nothing Nothing
-sheetToJSON :: FilePath -> Text -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
-sheetToJSON file sheetname what header firstRow lastRow = do
+sheetToJSON :: FilePath -> Text -> Text -> Bool -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
+sheetToJSON file sheetname what header fixheaders firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
   let sheets = DM.keys mapSheets
@@ -40,7 +40,7 @@ sheetToJSON file sheetname what header firstRow lastRow = do
     then do
       let ws = fromJust $ xlsx ^? ixSheet sheetname
       let fcells = filterFormattedCellMap firstRow lastRow $ toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
-      let sheetAsMap = sheetToMap fcells (valueGetters DM.! what) header
+      let sheetAsMap = sheetToMap fcells (valueGetters DM.! what) header fixheaders
       return $ encode sheetAsMap
     else
       return . encode $
@@ -49,8 +49,8 @@ sheetToJSON file sheetname what header firstRow lastRow = do
 
 
   -- | e.g shhetToJSON file "Sheet1" "[data,comments]" True Nothing Nothing
-sheetToJSONlist :: FilePath -> Text -> [Text] -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
-sheetToJSONlist file sheetname what header firstRow lastRow = do
+sheetToJSONlist :: FilePath -> Text -> [Text] -> Bool -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
+sheetToJSONlist file sheetname what header fixheaders firstRow lastRow = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
   let sheets = DM.keys mapSheets
@@ -60,34 +60,34 @@ sheetToJSONlist file sheetname what header firstRow lastRow = do
       let fcells = filterFormattedCellMap firstRow lastRow $ toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
   -- below with containers >= 0.5.8 (restrictKeys):
   -- let sheetAsMap = sheetToMapMap fcells header (DM.restrictKeys valueGetters (DS.fromList what))
-      let sheetAsMap = sheetToMapMap fcells header (DM.filterWithKey (\k _ -> k `elem` what) valueGetters)
+      let sheetAsMap = sheetToMapMap fcells header fixheaders (DM.filterWithKey (\k _ -> k `elem` what) valueGetters)
       return $ encode sheetAsMap
     else
       return . encode $
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
                   T.intercalate ", " sheets]
 
-sheetToJSON2 :: FilePath -> Text -> Text -> Bool -> Maybe Int -> Maybe Int -> IO String
-sheetToJSON2 file sheetname what header firstRow lastRow = do
-  x <- sheetToJSON file sheetname what header firstRow lastRow
-  return $ unpackChars x
+-- sheetToJSON2 :: FilePath -> Text -> Text -> Bool -> Maybe Int -> Maybe Int -> IO String
+-- sheetToJSON2 file sheetname what header firstRow lastRow = do
+--   x <- sheetToJSON file sheetname what header firstRow lastRow
+--   return $ unpackChars x
+--
+-- sheetToJSONlist2 :: FilePath -> Text -> [Text] -> Bool -> Maybe Int -> Maybe Int -> IO String
+-- sheetToJSONlist2 file sheetname what header firstRow lastRow = do
+--   x <- sheetToJSONlist file sheetname what header firstRow lastRow
+--   return $ unpackChars x
 
-sheetToJSONlist2 :: FilePath -> Text -> [Text] -> Bool -> Maybe Int -> Maybe Int -> IO String
-sheetToJSONlist2 file sheetname what header firstRow lastRow = do
-  x <- sheetToJSONlist file sheetname what header firstRow lastRow
-  return $ unpackChars x
 
-
-sheetsToJSONlist :: FilePath -> [Text] -> Bool -> IO ByteString
-sheetsToJSONlist file what header = do
+sheetsToJSONlist :: FilePath -> [Text] -> Bool -> Bool -> IO ByteString
+sheetsToJSONlist file what header fixheaders = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let sheetmap = getNonEmptySheets xlsx
   let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
-  return $ encode (sheetsToMapMap fcellmapmap header (DM.filterWithKey (\k _ -> k `elem` what) valueGetters))
+  return $ encode (sheetsToMapMap fcellmapmap header fixheaders (DM.filterWithKey (\k _ -> k `elem` what) valueGetters))
 
-sheetsToJSON :: FilePath -> Text -> Bool -> IO ByteString
-sheetsToJSON file what header = do
+sheetsToJSON :: FilePath -> Text -> Bool -> Bool -> IO ByteString
+sheetsToJSON file what header fixheaders = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let sheetmap = getNonEmptySheets xlsx
   let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
-  return $ encode $ (sheetsToMapMap fcellmapmap header (DM.mapKeys (\_ -> what) valueGetters)) DM.! what
+  return $ encode $ (sheetsToMapMap fcellmapmap header  fixheaders (DM.mapKeys (\_ -> what) valueGetters)) DM.! what
