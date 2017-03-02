@@ -6,7 +6,7 @@ import           Codec.Xlsx.Formatted
 import           Data.Map                   (Map)
 import qualified Data.Map                   as DM
 import           Data.Maybe                 (fromMaybe)
-import           Data.Text                  (Text)
+import           Data.Text                  (Text, pack)
 import qualified Data.Text                  as T
 import           Empty                      (emptyFormattedCell)
 import           ReadXLSX.Internal
@@ -16,9 +16,9 @@ import           Data.Aeson.Types           (Array, Value)
 import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import qualified Data.HashMap.Strict.InsOrd as DHSI
 import qualified Data.Vector                as DV
-import qualified TextShow                   as TS
 -- for tests:
 import           TestsXLSX
+
 
 -- not used yet
 excelColumnToArray :: [Maybe CellValue] -> Array
@@ -38,7 +38,7 @@ sheetToMap fcells fcellToValue header fixheaders = DHSI.fromList $
                                          map (\j -> (colnames !! j, extractColumn fcells fcellToValue skip (j+firstCol))) [0 .. length colnames - 1]
                                        where (skip, colnames) = if header
                                                                    then (1, colHeaders2 fcells fixheaders)
-                                                                   else (0, map (\j -> T.concat [T.pack "X", TS.showt j]) colRange)
+                                                                   else (0, map (\j -> T.concat [pack "X", showInt j]) colRange)
                                              (colRange, firstCol, _) = cellsRange fcells
                                              -- cells = DM.map _formattedCell fcells -- to improve, no need that ; si pour headers ?
 
@@ -54,7 +54,7 @@ sheetToMapMap fcells header fixheaders =
   --     keys
   where (skip, colnames) = if header
                               then (1, colHeaders2 fcells fixheaders)
-                              else (0, map (\j -> T.concat [T.pack "X", TS.showt j]) colRange)
+                              else (0, map (\j -> T.concat [pack "X", showInt j]) colRange)
         (colRange, firstCol, _) = cellsRange fcells
 --        keys = DM.keys valuesMap
 

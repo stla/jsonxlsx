@@ -14,11 +14,14 @@ import qualified Data.Map             as DM
 import           Data.Maybe           (fromJust, fromMaybe, isJust, isNothing)
 import           Data.Scientific      (floatingOrInteger, fromFloatDigits)
 import qualified Data.Set             as DS
-import           Data.Text            (Text)
+import           Data.Text            (Text, pack)
 import qualified Data.Text            as T
 import           Empty                (emptyCell, emptyFormattedCell)
 import           ExcelDates           (intToDate)
-import qualified TextShow             as TS
+import           TextShow             (showt)
+
+showInt :: Int -> Text
+showInt = pack . show
 
 type FormattedCellMap = Map (Int, Int) FormattedCell
 
@@ -67,7 +70,7 @@ isValidDateCell fcell =
 fcellToCellFormat :: FormattedCell -> Value
 fcellToCellFormat fcell =
   case view formatNumberFormat $ view formattedFormat fcell of
-    Just (StdNumberFormat x)  -> String (T.pack (show x))
+    Just (StdNumberFormat x)  -> String (pack (show x))
     Just (UserNumberFormat x) -> String x
     Nothing                   -> Null
 
@@ -160,10 +163,10 @@ valueToText :: Value -> Maybe Text
 valueToText value =
   case value of
     (Number x) -> Just y
-      where y = if isRight z then TS.showt (fromRight' z) else TS.showt (fromLeft' z)
+      where y = if isRight z then showInt (fromRight' z) else showt (fromLeft' z)
             z = floatingOrInteger x :: Either Float Int
     (String a) -> Just a
-    (Bool a) -> Just (TS.showt a)
+    (Bool a) -> Just (showt a)
     Null -> Nothing
 
 cellsRange :: Map (Int, Int) a -> ([Int], Int, Int)
@@ -176,7 +179,7 @@ cellsRange cells = (colRange, firstCol, firstRow)
 
 getHeader :: CellMap -> Int -> Int -> Int -> Text
 getHeader cells firstRow firstCol j =
-  fromMaybe (T.concat [T.pack "X", TS.showt (j-firstCol+1)]) $
+  fromMaybe (T.concat [pack "X", showInt (j-firstCol+1)]) $
     valueToText . cellToCellValue $
       fromMaybe emptyCell (DM.lookup (firstRow, j) cells)
 
@@ -190,7 +193,7 @@ colHeadersAsMap cells = DM.fromSet (getHeader cells firstRow firstCol) (DS.fromL
 
 getHeader2 :: FormattedCellMap -> Int -> Int -> Int -> Text
 getHeader2 cells firstRow firstCol j =
-  fromMaybe (T.concat [T.pack "X", TS.showt (j-firstCol+1)]) $
+  fromMaybe (T.concat [pack "X", showInt (j-firstCol+1)]) $
     valueToText . fcellToCellValue $
       fromMaybe emptyFormattedCell (DM.lookup (firstRow, j) cells)
 
@@ -213,10 +216,10 @@ fixHeaders colnames =
   where out = map append $ zip colnames [0 .. length colnames - 1]
         append (name,index) =
           case index of
-            0 -> if indices /= [] then T.concat [name, (T.pack . show) 1] else name
+            0 -> if indices /= [] then T.concat [name, pack "_", showInt 1] else name
             _ -> if index `elem` indices
                    then
-                     T.concat [name, TS.showt $ 2 + fromJust (elemIndex index indices)]
+                     T.concat [name, pack "_", showInt $ 2 + fromJust (elemIndex index indices)]
                    else
                      name
           where indices = map (+1) $ elemIndices x xs

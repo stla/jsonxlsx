@@ -5,12 +5,12 @@ import Codec.Xlsx
 import Codec.Xlsx.Formatted
 import qualified Data.Text as T
 import Data.Map (Map)
-import qualified Data.Map as DM
+-- import qualified Data.Map as DM
 import Data.Either.Extra (fromRight)
 import WriteXLSX.DataframeToSheet
 import qualified Data.ByteString.Lazy as L
 
-import Data.ByteString.Lazy.Internal (packChars)
+-- import Data.ByteString.Lazy.Internal (packChars)
 
 df = "{\"include\":[true,true,true,true,true,true],\"Petal.Width\":[0.22342,null,1.5,1.5,1.3,1.5],\"Species\":[\"setosa\",\"versicolor\",\"versicolor\",\"versicolor\",\"versicolor\",\"versicolor\"],\"Date\":[\"2017-01-14\",\"2017-01-15\",\"2017-01-16\",\"2017-01-17\",\"2017-01-18\",\"2017-01-19\"]}"
 comments = "{\"include\":[\"HELLO\",null,null,null,null,null],\"Petal.Width\":[null,null,null,null,null,null],\"Species\":[null,null,null,null,null,null],\"Date\":[null,null,null,null,null,null]}"

@@ -11,7 +11,6 @@ import           Data.ByteString.Lazy        (ByteString)
 import qualified Data.ByteString.Lazy        as L
 import           Data.Maybe                  (fromMaybe)
 import           Data.Text                   (Text)
-import qualified Data.Text                   as T
 import           Data.Time.Clock.POSIX
 import           Empty                       (emptyFill, emptyStyleSheet,
                                               emptyXlsx, gray125Fill)
