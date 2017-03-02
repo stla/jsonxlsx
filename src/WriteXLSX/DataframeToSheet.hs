@@ -10,22 +10,21 @@ module WriteXLSX.DataframeToSheet (
     ) where
 import           Codec.Xlsx.Types
 import           Control.Lens
-import           Data.Aeson                    (decode)
-import           Data.Aeson.Types              (Array, Object, Value,
-                                                Value (Number), Value (String),
-                                                Value (Bool), Value (Array),
-                                                Value (Null))
-import           Data.ByteString.Lazy          (ByteString)
-import           Data.ByteString.Lazy.Internal (unpackChars)
-import           Data.ByteString.Lazy.UTF8     (fromString)
-import           Data.HashMap.Lazy             (keys)
-import qualified Data.HashMap.Lazy             as DHL
-import qualified Data.Map.Lazy                 as DML
-import           Data.Maybe                    (fromJust)
-import           Data.Scientific               (toRealFloat)
-import           Data.Text                     (Text)
-import qualified Data.Text                     as T
-import qualified Data.Vector                   as DV
+import           Data.Aeson                (decode)
+import           Data.Aeson.Types          (Array, Object, Value,
+                                            Value (Number), Value (String),
+                                            Value (Bool), Value (Array),
+                                            Value (Null))
+-- import           Data.ByteString.Lazy          (ByteString)
+-- import           Data.ByteString.Lazy.Internal (unpackChars)
+import           Data.ByteString.Lazy.UTF8 (fromString)
+-- import           Data.HashMap.Lazy             (keys)
+import qualified Data.HashMap.Lazy         as DHL
+import qualified Data.Map.Lazy             as DML
+import           Data.Maybe                (fromJust)
+import           Data.Scientific           (toRealFloat)
+import           Data.Text                 (Text)
+import qualified Data.Vector               as DV
 import           Empty
 import           Text.Regex
 -- import qualified Text.Regex.Posix.ByteString.Lazy as RB
