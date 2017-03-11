@@ -29,6 +29,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     WriteXLSX
                      , WriteXLSX.DataframeToSheet
+                     , WriteXLSX.ExtractKeys
                      , Empty
                      , ReadXLSX
                      , ReadXLSX2
@@ -61,6 +62,7 @@ library
                      , mime-types
                      , Unique
                      , utf8-string
+                     , regex-applicative
 
 executable json2xlsx
   if flag(exe)
@@ -111,6 +113,7 @@ executable xlsx2json
                      , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
+--                     , utf8-string
 
 executable getXLSXcomments
   if flag(exe)

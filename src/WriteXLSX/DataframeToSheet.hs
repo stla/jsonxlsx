@@ -15,6 +15,7 @@ import           Data.Aeson.Types          (Array, Object, Value,
                                             Value (Number), Value (String),
                                             Value (Bool), Value (Array),
                                             Value (Null))
+import           WriteXLSX.ExtractKeys
 -- import           Data.ByteString.Lazy          (ByteString)
 -- import           Data.ByteString.Lazy.Internal (unpackChars)
 import           Data.ByteString.Lazy.UTF8 (fromString)
@@ -24,9 +25,10 @@ import qualified Data.Map.Lazy             as DML
 import           Data.Maybe                (fromJust)
 import           Data.Scientific           (toRealFloat)
 import           Data.Text                 (Text)
+import qualified Data.Text                 as T
 import qualified Data.Vector               as DV
 import           Empty
-import           Text.Regex
+-- import           Text.Regex
 -- import qualified Text.Regex.Posix.ByteString.Lazy as RB
 -- import qualified Text.Regex.Posix as TRP
 -- import Data.Either.Extra
@@ -35,33 +37,10 @@ import           Text.Regex
 -- thanks to TemplateHaskell
 makeLenses ''Comment
 
--- problem: decode does not preserve order of keys
--- (seems related to capital/noncapital first letter)
-
--- extractKeysByteString :: ByteString -> [ByteString]
--- extractKeysByteString = f (TRP.makeRegex "\"([^:|^\\,]+)\":")
---                               where f :: RB.Regex -> ByteString -> [ByteString]
---                                     f regex json =
---                                       case fromRight' (unsafePerformIO $ RB.regexec regex json) of
---                                         Nothing -> []
---                                         (Just (_, _, after, matched)) -> matched ++ (f regex after)
--- without IO: https://hackage.haskell.org/package/regex-tdfa-1.2.2/docs/Text-Regex-TDFA-ByteString-Lazy.html
-
-extractKeys :: Regex -> String -> [String]
-extractKeys reg s =
-  case matchRegexAll reg s of
-    Nothing                     -> []
-    Just (_, _, after, matched) -> matched ++ extractKeys reg after
-
--- take care of UTF-8
--- alternative: http://stackoverflow.com/questions/42013076/convert-unescaped-unicode-to-utf8-integer
 dfToColumns :: String -> ([Array], [Text])
 dfToColumns df = (map (\key -> valueToArray $ fromJust $ DHL.lookup key dfObject) colnames, colnames)
                    where dfObject = fromJust (decode (fromString df) :: Maybe Object)
-                         -- colnames = T.pack <$> extractKeys (mkRegex "\"([^:|^,]+)\":") df
-                         colnames = (fromJust . decode . fromString) <$>
-                                      map (\x -> "\"" ++ x ++ "\"") (extractKeys (mkRegex "\"([^:|^,]+)\":") df)
-                                        :: [Text]
+                         colnames = T.pack <$> extractKeys df
 
 valueToArray :: Value -> Array
 valueToArray value = x

@@ -3,23 +3,24 @@ module ReadXLSX
     where
 import           Codec.Xlsx
 import           Codec.Xlsx.Formatted
-import           Control.Lens                  ((^?))
-import           Data.Aeson                    (Value, encode)
-import           Data.ByteString.Lazy          (ByteString)
+import           Control.Lens         ((^?))
+import           Data.Aeson           (Value, encode)
+-- import Data.Aeson.Text
+-- import qualified Data.Text.Lazy as L
+-- import System.IO.Unsafe
+import           Data.ByteString.Lazy (ByteString)
+-- import           Data.Either.Extra    (fromRight')
 -- import           Data.ByteString.Lazy.Internal (unpackChars)
-import           Data.Map                      (Map)
-import qualified Data.Map                      as DM
-import           Data.Maybe                    (fromJust)
-import           Data.Text                     (Text)
-import qualified Data.Text                     as T
-import           ReadXLSX.Internal             (fcellToCellComment,
-                                                fcellToCellFormat,
-                                                fcellToCellType,
-                                                fcellToCellValue,
-                                                filterFormattedCellMap,
-                                                getNonEmptySheets,
-                                                getXlsxAndStyleSheet,
-                                                isNonEmptyWorksheet)
+import           Data.Map             (Map)
+import qualified Data.Map             as DM
+import           Data.Maybe           (fromJust)
+import           Data.Text            (Text)
+import qualified Data.Text            as T
+import           ReadXLSX.Internal    (fcellToCellComment, fcellToCellFormat,
+                                       fcellToCellType, fcellToCellValue,
+                                       filterFormattedCellMap,
+                                       getNonEmptySheets, getXlsxAndStyleSheet,
+                                       isNonEmptyWorksheet)
 import           ReadXLSX.SheetToList
 -- import Control.Monad ((<=<))
 
@@ -47,6 +48,24 @@ sheetToJSON file sheetname what header fixheaders firstRow lastRow = do
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
                   T.intercalate ", " sheets]
 
+--
+-- sheetToJSON2 :: ByteString -> Text -> Text -> Bool -> Bool -> Maybe Int -> Maybe Int -> ByteString
+-- sheetToJSON2 bs sheetname what header fixheaders firstRow lastRow = do
+--   if DM.member sheetname mapSheets
+--     then
+--       encode $ sheetToMap
+--         (filterFormattedCellMap firstRow lastRow $ toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet)
+--           (valueGetters DM.! what) header fixheaders
+--     else
+--       encode $
+--         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
+--                   T.intercalate ", " sheets]
+--   where xlsx = toXlsx bs
+--         stylesheet = fromRight' $ parseStyleSheet $ _xlStyles xlsx
+--         mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
+--         sheets = DM.keys mapSheets
+--         ws = fromJust $ xlsx ^? ixSheet sheetname
+
 
   -- | e.g shhetToJSON file "Sheet1" "[data,comments]" True Nothing Nothing
 sheetToJSONlist :: FilePath -> Text -> [Text] -> Bool -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
@@ -66,6 +85,25 @@ sheetToJSONlist file sheetname what header fixheaders firstRow lastRow = do
       return . encode $
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
                   T.intercalate ", " sheets]
+
+-- --
+-- sheetToJSON2 :: FilePath -> Text -> Text -> Bool -> Bool -> Maybe Int -> Maybe Int -> IO L.Text
+-- sheetToJSON2 file sheetname what header fixheaders firstRow lastRow = do
+--   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+--   let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
+--   let sheets = DM.keys mapSheets
+--   if DM.member sheetname mapSheets
+--     then do
+--       let ws = fromJust $ xlsx ^? ixSheet sheetname
+--       let fcells = filterFormattedCellMap firstRow lastRow $ toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+--       let sheetAsMap = sheetToMap fcells (valueGetters DM.! what) header fixheaders
+--       return $ encodeToLazyText sheetAsMap
+--     else
+--       return . encodeToLazyText $
+--         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
+--                   T.intercalate ", " sheets]
+--
+-- sheetToJSON3 file sheetname what header fixheaders firstRow lastRow = unsafePerformIO $ sheetToJSON2 file sheetname what header fixheaders firstRow lastRow
 
 -- sheetToJSON2 :: FilePath -> Text -> Text -> Bool -> Maybe Int -> Maybe Int -> IO String
 -- sheetToJSON2 file sheetname what header firstRow lastRow = do
