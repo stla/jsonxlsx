@@ -37,6 +37,7 @@ library
                      , ReadXLSX.SheetToDataframe
                      , ReadXLSX.SheetToList
                      , ReadXLSX.AllSheetsToJSON
+                     , GetSheetnames
                      , ExcelDates
                      , ByteStringToBase64
                      , TestsXLSX

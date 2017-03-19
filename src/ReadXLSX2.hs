@@ -18,14 +18,6 @@ import           ReadXLSX.SheetToDataframe
 -- import Data.Text.Lazy.Encoding (encodeUtf8)
 -- import qualified Data.Text.Lazy as TL
 
-
-getSheetnames :: FilePath -> IO ByteString
-getSheetnames file =
-  do
-    bs <- L.readFile file
-    return $ encode $ DM.keys (DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets (toXlsx bs)))
-
-
 readFromFile :: FilePath -> (Cell -> Value) -> Text -> Bool -> Maybe Int -> Maybe Int -> IO ByteString
 readFromFile file cellToValue sheetname header firstRow lastRow =
   do

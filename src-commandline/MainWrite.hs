@@ -1,8 +1,8 @@
 module Main
   where
 import qualified Data.ByteString.Lazy.Char8    as L
-import           Data.ByteString.Lazy.Internal (packChars)
-import           Data.ByteString.Lazy.UTF8     (fromString)
+-- import           Data.ByteString.Lazy.Internal (packChars)
+-- import           Data.ByteString.Lazy.UTF8     (fromString)
 import           Data.Monoid                   ((<>))
 import qualified Data.Text                     as T
 import           Options.Applicative
