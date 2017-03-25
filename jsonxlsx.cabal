@@ -1,5 +1,5 @@
 name:                jsonxlsx
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Simple project template from stack
 description:         Please see README.md
 homepage:            https://github.com/stla/jsonxlsx#readme
@@ -19,11 +19,6 @@ flag exe
         Build the executables.
     default: False
     manual:  True
-flag dll
-    description:
-        Build the dlls.
-    default: False
-    manual:  True
 
 library
   hs-source-dirs:      src
@@ -32,15 +27,11 @@ library
                      , WriteXLSX.ExtractKeys
                      , Empty
                      , ReadXLSX
-                     , ReadXLSX2
                      , ReadXLSX.Internal
-                     , ReadXLSX.SheetToDataframe
                      , ReadXLSX.SheetToList
-                     , ReadXLSX.AllSheetsToJSON
                      , GetSheetnames
                      , ExcelDates
                      , ByteStringToBase64
-                     , TestsXLSX
   default-language:    Haskell2010
   ghc-options:        -fwarn-unused-imports
   build-depends:       base >= 4.7 && < 5
@@ -82,21 +73,6 @@ executable json2xlsx
                      , text
                      , utf8-string
 
-executable xlsx2json2
-  if flag(exe)
-    buildable: True
-  else
-    buildable: False
-  hs-source-dirs:      src-commandline
-  main-is:             MainRead2.hs
-  other-modules:
-  default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5
-                     , jsonxlsx
-                     , optparse-applicative == 0.13.1.0
-                     , bytestring
-                     , text
-
 executable xlsx2json
   if flag(exe)
     buildable: True
@@ -107,36 +83,6 @@ executable xlsx2json
   ghc-options:        -fwarn-unused-imports -O3 -optc-Os
   other-extensions:    CPP
   CPP-Options:         -DPORTABLE
-  other-modules:
-  default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5
-                     , jsonxlsx
-                     , optparse-applicative == 0.13.1.0
-                     , bytestring
-                     , text
---                     , utf8-string
-
-executable getXLSXcomments
-  if flag(exe)
-    buildable: True
-  else
-    buildable: False
-  hs-source-dirs:      src-commandline
-  main-is:             MainReadComments.hs
-  other-modules:
-  default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5
-                     , jsonxlsx
-                     , optparse-applicative == 0.13.1.0
-                     , bytestring
-                     , text
-executable getXLSXtypes
-  if flag(exe)
-    buildable: True
-  else
-    buildable: False
-  hs-source-dirs:      src-commandline
-  main-is:             MainReadTypes.hs
   other-modules:
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
@@ -159,27 +105,6 @@ executable getXLSXsheets
                      , optparse-applicative == 0.13.1.0
                      , bytestring
                      , text
-
-executable xlsx2jsonR
-  if flag(dll)
-    buildable: True
-  else
-    buildable: False
-  hs-source-dirs:      src-dlls
-  main-is:             MainRead.hs
---  c-sources:           StartEnd.c
-  other-modules:
-  default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5
-                     , jsonxlsx
-                     , bytestring
-                     , text
-  if os(windows)
-    ghc-options:       -shared -fPIC StartEnd.c
-  else
-    ghc-options:       -shared -fPIC -dynamic
-    extra-libraries:    HSrts-ghc8.0.2
-
 
 source-repository head
   type:     git
