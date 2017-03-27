@@ -121,11 +121,14 @@ sheetsToJSONlist file what header fixheaders = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let sheetmap = getNonEmptySheets xlsx
   let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
-  return $ encode (sheetsToMapMap fcellmapmap header fixheaders (DM.filterWithKey (\k _ -> k `elem` what) valueGetters))
+  return $
+    encode (sheetsToMapMap fcellmapmap header fixheaders
+             (DM.filterWithKey (\k _ -> k `elem` what) valueGetters))
 
 sheetsToJSON :: FilePath -> Text -> Bool -> Bool -> IO ByteString
 sheetsToJSON file what header fixheaders = do
   (xlsx, stylesheet) <- getXlsxAndStyleSheet file
   let sheetmap = getNonEmptySheets xlsx
   let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
-  return $ encode $ (sheetsToMapMap fcellmapmap header  fixheaders (DM.mapKeys (\_ -> what) valueGetters)) DM.! what
+  return $ encode $ DM.map (\x -> x DM.! what)
+    (sheetsToMapMap fcellmapmap header fixheaders (DM.mapKeys (\_ -> what) valueGetters)) 
