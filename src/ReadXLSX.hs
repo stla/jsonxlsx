@@ -131,4 +131,5 @@ sheetsToJSON file what header fixheaders = do
   let sheetmap = getNonEmptySheets xlsx
   let fcellmapmap = DM.map (\ws -> toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet) sheetmap
   return $ encode $ DM.map (\x -> x DM.! what)
-    (sheetsToMapMap fcellmapmap header fixheaders (DM.mapKeys (\_ -> what) valueGetters)) 
+    (sheetsToMapMap fcellmapmap header fixheaders
+    (DM.filterWithKey (\k _ -> k == what) valueGetters)) 
