@@ -2,7 +2,6 @@
 
 module Main (main)
   where
-import           Test.SmallCheck.Series (Positive (..))
 import           Test.Tasty             (defaultMain, testGroup)
 import           Test.Tasty.HUnit       (testCase)
 import           Test.Tasty.HUnit       ((@=?))
