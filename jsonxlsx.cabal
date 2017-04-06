@@ -106,6 +106,19 @@ executable getXLSXsheets
                      , bytestring
                      , text
 
+test-suite data-test
+  type:                 exitcode-stdio-1.0
+  main-is:              Main.hs
+  hs-source-dirs:       test/
+  other-modules:
+  Build-Depends:        base
+                      , bytestring
+                      , tasty
+                      , tasty-hunit
+                      , tasty-smallcheck
+                      , jsonxlsx
+  Default-Language:     Haskell2010
+
 source-repository head
   type:     git
   location: https://github.com/stla/jsonxlsx
