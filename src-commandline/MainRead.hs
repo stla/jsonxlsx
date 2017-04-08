@@ -12,27 +12,27 @@ import           ReadXLSX
 
 data Arguments = Arguments
   { file     :: String
-  , sheet    :: Maybe String
+  , sheetname    :: Maybe String
   , what     :: String
   , colnames :: Bool
   , firstRow :: Maybe Int
   , lastRow  :: Maybe Int }
 
 readXLSX :: Arguments -> IO()
-readXLSX (Arguments file sheet what colnames firstRow lastRow) =
+readXLSX (Arguments file sheetname what colnames firstRow lastRow) =
   do
     let keys = splitOn (pack ",") (pack what)
     if length keys > 1
       then
-        if isJust sheet
+        if isJust sheetname
           then
-            sheetToJSONlist file (pack (fromJust sheet)) keys colnames True firstRow lastRow >>= L.putStrLn
+            sheetnameToJSONlist file (pack (fromJust sheetname)) keys colnames True firstRow lastRow >>= L.putStrLn
           else
             sheetsToJSONlist file keys colnames True >>= L.putStrLn
       else
-        if isJust sheet
+        if isJust sheetname
           then
-            sheetToJSON file (pack (fromJust sheet)) (head keys) colnames True firstRow lastRow >>= L.putStrLn
+            sheetnameToJSON file (pack (fromJust sheetname)) (head keys) colnames True firstRow lastRow >>= L.putStrLn
           else
             sheetsToJSON file (head keys) colnames True >>= L.putStrLn
 
@@ -44,8 +44,8 @@ run = Arguments
          <> short 'f'
          <> help "XLSX file" )
      <*> optional (strOption
-          ( metavar "SHEET"
-         <> long "sheet"
+          ( metavar "SHEETNAME"
+         <> long "sheetname"
          <> short 's'
          <> help "Sheet name, leave empty to read all sheets" ))
      <*> strOption

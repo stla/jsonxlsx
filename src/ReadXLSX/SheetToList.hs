@@ -47,8 +47,8 @@ sheetToMap fcells fcellToValue header fixheaders =
                                (0, map (\j -> T.concat [pack "X", showInt j]) colRange)
         (colRange, firstCol, _) = cellsRange fcells
 
-sheetToMapMap :: FormattedCellMap ->  Bool -> Bool ->
-                  Map Text (FormattedCell -> Value) -> Map Text (InsOrdHashMap Text Array)
+sheetToMapMap :: FormattedCellMap -> Bool -> Bool ->
+                   Map Text (FormattedCell -> Value) -> Map Text (InsOrdHashMap Text Array)
 sheetToMapMap fcells header fixheaders =
   DM.map
     (\valueGetter -> DHSI.fromList $

@@ -22,6 +22,9 @@ main = defaultMain $
       testCase "read xl1" $ do
         json <- testRXL1
         json @=? "{\"A\":[1]}",
+      testCase "read xl1 by index" $ do
+        json <- testRXL1bis
+        json @=? "{\"A\":[1]}",
       testCase "read xl2" $ do
         json <- testRXL2
         json @=? "{\"Col1\":[\"\195\169\",\"\194\181\",\"b\"],\"Col2\":[\"2017-01-25\",\"2017-01-26\",\"2017-01-27\"],\"\194\181\":[1,1,1]}",
@@ -34,10 +37,13 @@ testExtractKeys :: [String]
 testExtractKeys = extractKeys "{\"a\":2,\"\\u00b5\":1,\"µ\":2}"
 
 testRXL1 :: IO ByteString
-testRXL1 = sheetToJSON "test/simpleExcel.xlsx" "Sheet1" "data" True True Nothing Nothing
+testRXL1 = sheetnameToJSON "test/simpleExcel.xlsx" "Sheet1" "data" True True Nothing Nothing
+
+testRXL1bis :: IO ByteString
+testRXL1bis = sheetindexToJSON "test/simpleExcel.xlsx" 1 "data" True True Nothing Nothing
 
 testRXL2 :: IO ByteString
-testRXL2 = sheetToJSON "test/utf8.xlsx" "Sheet1" "data" True True Nothing Nothing
+testRXL2 = sheetnameToJSON "test/utf8.xlsx" "Sheet1" "data" True True Nothing Nothing
 
 testWriteAndRead :: IO Bool
 testWriteAndRead = do
@@ -45,5 +51,5 @@ testWriteAndRead = do
   tmpDir <- getTemporaryDirectory
   let tmpFile = tmpDir ++ "/xlsx.xlsx"
   write <- write1 json True tmpFile False
-  jjson <- sheetToJSON tmpFile "Sheet1" "data" True True Nothing Nothing
+  jjson <- sheetnameToJSON tmpFile "Sheet1" "data" True True Nothing Nothing
   return $ json == (unpackChars jjson)
