@@ -63,7 +63,7 @@ It is also possible to read the cell formats:
 {"A":[null,null],"B":[null,null]}
 ```
 
-- Read all worksheets *(not implemented yet)*:
+- Read all worksheets
 
 Ignore the flag `-s` to read all sheets of a `xlsx` file:
 
