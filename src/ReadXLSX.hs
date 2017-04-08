@@ -66,6 +66,19 @@ sheetindexToJSON file sheetindex what header fixheaders firstRow lastRow = do
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
                   T.intercalate ", " sheets]
 
+sheetToJSONlist :: Xlsx -> StyleSheet -> Text -> [Text] -> Bool -> Bool ->
+                         Maybe Int -> Maybe Int -> IO ByteString
+sheetToJSONlist xlsx stylesheet sheetname what header fixheaders firstRow lastRow =
+  do
+    let ws = fromJust $ xlsx ^? ixSheet sheetname
+    let fcells = filterFormattedCellMap firstRow lastRow $
+                   toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
+    -- below with containers >= 0.5.8 (restrictKeys):
+      -- let sheetAsMap = sheetToMapMap fcells header (DM.restrictKeys valueGetters (DS.fromList what))
+    let sheetAsMap = sheetToMapMap fcells header fixheaders
+                       (DM.filterWithKey (\k _ -> k `elem` what) valueGetters)
+    return $ encode sheetAsMap
+
   -- | e.g sheetnameToJSONlist file "Sheet1" "[data,comments]" True True Nothing Nothing
 sheetnameToJSONlist :: FilePath -> Text -> [Text] -> Bool -> Bool ->
                          Maybe Int -> Maybe Int -> IO ByteString
@@ -74,13 +87,23 @@ sheetnameToJSONlist file sheetname what header fixheaders firstRow lastRow = do
   let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
   let sheets = DM.keys mapSheets
   if DM.member sheetname mapSheets
+    then
+      sheetToJSONlist xlsx stylesheet sheetname what header fixheaders firstRow lastRow
+    else
+      return . encode $
+        T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
+                  T.intercalate ", " sheets]
+
+sheetindexToJSONlist :: FilePath -> Int -> [Text] -> Bool -> Bool ->
+                         Maybe Int -> Maybe Int -> IO ByteString
+sheetindexToJSONlist file sheetindex what header fixheaders firstRow lastRow = do
+  (xlsx, stylesheet) <- getXlsxAndStyleSheet file
+  let mapSheets = DM.filter isNonEmptyWorksheet (DM.fromList $ _xlSheets xlsx)
+  let sheets = DM.keys mapSheets
+  if sheetindex > 0 && sheetindex <= length sheets
     then do
-      let ws = fromJust $ xlsx ^? ixSheet sheetname
-      let fcells = filterFormattedCellMap firstRow lastRow $ toFormattedCells (_wsCells ws) (_wsMerges ws) stylesheet
-  -- below with containers >= 0.5.8 (restrictKeys):
-  -- let sheetAsMap = sheetToMapMap fcells header (DM.restrictKeys valueGetters (DS.fromList what))
-      let sheetAsMap = sheetToMapMap fcells header fixheaders (DM.filterWithKey (\k _ -> k `elem` what) valueGetters)
-      return $ encode sheetAsMap
+      let sheetname = sheets !! (sheetindex - 1)
+      sheetToJSONlist xlsx stylesheet sheetname what header fixheaders firstRow lastRow
     else
       return . encode $
         T.concat [T.pack ("Available sheet" ++ (if length sheets > 1 then "s: " else ": ")),
