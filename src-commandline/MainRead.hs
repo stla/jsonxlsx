@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Main
   where
 import qualified Data.ByteString.Lazy.Char8 as L
@@ -8,33 +7,44 @@ import           Data.Text                  (pack, splitOn)
 import           Options.Applicative
 import           ReadXLSX
 
--- T.splitOn "," "data,comments" => ["data","comments"]
-
 data Arguments = Arguments
-  { file     :: String
-  , sheetname    :: Maybe String
-  , what     :: String
-  , colnames :: Bool
-  , firstRow :: Maybe Int
-  , lastRow  :: Maybe Int }
+  { file       :: String
+  , sheetname  :: Maybe String
+  , sheetindex :: Maybe Int
+  , what       :: String
+  , colnames   :: Bool
+  , firstRow   :: Maybe Int
+  , lastRow    :: Maybe Int }
 
 readXLSX :: Arguments -> IO()
-readXLSX (Arguments file sheetname what colnames firstRow lastRow) =
+readXLSX (Arguments file sheetname sheetindex what colnames firstRow lastRow) =
   do
     let keys = splitOn (pack ",") (pack what)
     if length keys > 1
       then
         if isJust sheetname
           then
-            sheetnameToJSONlist file (pack (fromJust sheetname)) keys colnames True firstRow lastRow >>= L.putStrLn
+            sheetnameToJSONlist file (pack (fromJust sheetname)) keys colnames
+              True firstRow lastRow >>= L.putStrLn
           else
-            sheetsToJSONlist file keys colnames True >>= L.putStrLn
+            if isJust sheetindex
+              then
+                sheetindexToJSONlist file (fromJust sheetindex) keys colnames
+                  True firstRow lastRow >>= L.putStrLn
+              else
+                sheetsToJSONlist file keys colnames True >>= L.putStrLn
       else
         if isJust sheetname
           then
-            sheetnameToJSON file (pack (fromJust sheetname)) (head keys) colnames True firstRow lastRow >>= L.putStrLn
+            sheetnameToJSON file (pack (fromJust sheetname)) (head keys) colnames
+              True firstRow lastRow >>= L.putStrLn
           else
-            sheetsToJSON file (head keys) colnames True >>= L.putStrLn
+            if isJust sheetindex
+              then
+                sheetindexToJSON file (fromJust sheetindex) (head keys) colnames
+                  True firstRow lastRow >>= L.putStrLn
+              else
+                sheetsToJSON file (head keys) colnames True >>= L.putStrLn
 
 run :: Parser Arguments
 run = Arguments
@@ -48,6 +58,11 @@ run = Arguments
          <> long "sheetname"
          <> short 's'
          <> help "Sheet name, leave empty to read all sheets" ))
+     <*> optional (option auto
+          ( metavar "SHEETINDEX"
+         <> long "sheetindex"
+         <> short 'i'
+         <> help "Sheet index (alternative to sheet name)" ))
      <*> strOption
           ( metavar "WHAT"
          <> long "what"
