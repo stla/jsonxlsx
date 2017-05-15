@@ -1,5 +1,5 @@
 name:                jsonxlsx
-version:             0.2.0.0
+version:             0.2.0.9000
 synopsis:            Simple project template from stack
 description:         Please see README.md
 homepage:            https://github.com/stla/jsonxlsx#readme
@@ -25,6 +25,7 @@ library
   exposed-modules:     WriteXLSX
                      , WriteXLSX.DataframeToSheet
                      , WriteXLSX.ExtractKeys
+                     , WriteXLSX.DrawingPicture
                      , Empty
                      , ReadXLSX
                      , ReadXLSX.Internal
@@ -43,11 +44,11 @@ library
                      , text
                      , lens
                      , bytestring
-                     , unordered-containers == 0.2.7.2
+                     , unordered-containers
                      , vector
                      , time
-                     , insert-ordered-containers == 0.2.0.0
-                     , scientific == 0.3.4.10
+                     , insert-ordered-containers
+                     , scientific
                      , extra
                      , text-show
                      , base64-bytestring
@@ -68,7 +69,7 @@ executable json2xlsx
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.1.0
+                     , optparse-applicative
                      , bytestring
                      , text
                      , utf8-string
@@ -87,7 +88,7 @@ executable xlsx2json
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.1.0
+                     , optparse-applicative
                      , bytestring
                      , text
 
@@ -102,7 +103,7 @@ executable getXLSXsheets
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , jsonxlsx
-                     , optparse-applicative == 0.13.1.0
+                     , optparse-applicative
                      , bytestring
                      , text
 

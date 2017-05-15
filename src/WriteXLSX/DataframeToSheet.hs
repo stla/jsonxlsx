@@ -81,12 +81,17 @@ dfToCells df header = (DML.fromList $ concatMap f [1..ncols], ncols)
             ncols = length dfCols
 
 dfToSheet :: String -> Bool -> Worksheet
-dfToSheet df header = set wsColumns [widths] $ set wsCells cells emptyWorksheet
+dfToSheet df header = set wsColumnsProperties [widths] $ set wsCells cells emptyWorksheet
                         where (cells, ncols) = dfToCells df header
-                              widths = ColumnsWidth {cwMin = 1,
-                                                     cwMax = ncols,
-                                                     cwWidth = 10,
-                                                     cwStyle = Nothing}
+                              widths = ColumnsProperties {
+                                                          cpMin = 1,
+                                                          cpMax = ncols,
+                                                          cpWidth = 15,
+                                                          cpStyle = Nothing,
+                                                          cpHidden = False,
+                                                          cpCollapsed = False,
+                                                          cpBestFit = True
+                                                         }
 
 dfToCellsWithComments :: String -> Bool -> String -> Text -> CellMap
 dfToCellsWithComments df header comments author = DML.fromList $ concatMap f [1..length dfCols]

@@ -13,19 +13,22 @@ emptyCell = Cell { _cellStyle = Nothing,
                    _cellComment = Nothing,
                    _cellFormula = Nothing }
 
-emptyWorksheet = Worksheet { _wsColumns = [],
-                             _wsRowPropertiesMap = DML.empty,
-                             _wsCells = DML.empty,
-                             _wsDrawing = Nothing,
-                             _wsMerges = [],
-                             _wsSheetViews = Nothing,
-                             _wsPageSetup = Nothing,
-                             _wsConditionalFormattings = DML.empty,
-                             _wsDataValidations = DML.empty,
-                             _wsPivotTables = [],
-                             _wsAutoFilter = Nothing,
-                             _wsTables = [],
-                             _wsProtection = Nothing }
+-- emptyWorksheet = Worksheet { _wsColumnsProperties = [],
+--                              _wsRowPropertiesMap = DML.empty,
+--                              _wsCells = DML.empty,
+--                              _wsDrawing = Nothing,
+--                              _wsMerges = [],
+--                              _wsSheetViews = Nothing,
+--                              _wsPageSetup = Nothing,
+--                              _wsConditionalFormattings = DML.empty,
+--                              _wsDataValidations = DML.empty,
+--                              _wsPivotTables = [],
+--                              _wsAutoFilter = Nothing,
+--                              _wsTables = [],
+--                              _wsProtection = Nothing }
+
+emptyWorksheet :: Worksheet
+emptyWorksheet = def
 
 emptyComment = Comment { _commentText = XlsxText T.empty,
                          _commentAuthor = "",

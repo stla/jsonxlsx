@@ -6,6 +6,7 @@ tests_XLSXfiles
 .haskell-ghc-mod.json
 *.json
 *.xlsx
+*.png
 dist
 src/ReadXLSX/SheetToDataframeString.hs
 src/ReadXLSX/SheetToDataframe.hs

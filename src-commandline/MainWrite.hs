@@ -1,30 +1,39 @@
 module Main
   where
-import qualified Data.ByteString.Lazy.Char8    as L
+import qualified Data.ByteString.Lazy.Char8 as L
 -- import           Data.ByteString.Lazy.Internal (packChars)
 -- import           Data.ByteString.Lazy.UTF8     (fromString)
-import           Data.Monoid                   ((<>))
-import qualified Data.Text                     as T
+import           Data.Monoid                ((<>))
+import qualified Data.Text                  as T
 import           Options.Applicative
 import           WriteXLSX
 
 
 data Arguments = Arguments
-  { df       :: String
-  , colnames :: Bool
-  , comments :: Maybe String
-  , author   :: Maybe String
-  , outfile  :: String
-  , base64   :: Bool }
+  { df        :: String
+  , colnames  :: Bool
+  , comments  :: Maybe String
+  , author    :: Maybe String
+  , imagefile :: Maybe String
+  , outfile   :: String
+  , base64    :: Bool }
 
 writeXLSX :: Arguments -> IO()
-writeXLSX (Arguments df colnames Nothing _ outfile base64) =
+writeXLSX (Arguments df colnames Nothing _ Nothing outfile base64) =
   do
     bs <- write1 df colnames outfile base64
     L.putStrLn bs
-writeXLSX (Arguments df colnames (Just comments) author outfile base64) =
+writeXLSX (Arguments df colnames Nothing _ (Just image) outfile base64) =
+  do
+    bs <- write1pic df colnames image outfile base64
+    L.putStrLn bs
+writeXLSX (Arguments df colnames (Just comments) author Nothing outfile base64) =
   do
     bs <- write2 df colnames comments (fmap T.pack author) outfile base64
+    L.putStrLn bs
+writeXLSX (Arguments df colnames (Just comments) author (Just image) outfile base64) =
+  do
+    bs <- write2pic df colnames comments (fmap T.pack author) image outfile base64
     L.putStrLn bs
 
 run :: Parser Arguments
@@ -50,6 +59,12 @@ run = Arguments
             <> long "author"
             <> short 'a'
             <> help "Author of the comments" ))
+     <*> optional
+           (strOption
+             ( metavar "IMAGE"
+            <> long "image"
+            <> short 'i'
+            <> help "Image file" ))
      <*> strOption
           ( long "output"
          <> short 'o'
