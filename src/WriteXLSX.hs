@@ -49,11 +49,12 @@ write1 jsondf header outfile base64 = do
     then return $ byteStringToBase64 lbs "xlsx"
     else return L.empty
 
-write1pic :: String -> Bool -> FilePath -> FilePath -> Bool -> IO ByteString
-write1pic jsondf header imagefile outfile base64 = do
+write1pic :: String -> Bool -> FilePath -> (Int, Int, Int, Int) ->
+  FilePath -> Bool -> IO ByteString
+write1pic jsondf header imagefile anchor outfile base64 = do
   ct <- getPOSIXTime
   image <- L.readFile imagefile
-  let drawing = drawingPicture image
+  let drawing = drawingPicture image anchor
   let ws = set wsDrawing (Just drawing) (dfToSheet jsondf header)
   let xlsx = def & atSheet "Sheet1" ?~ ws
   let lbs = fromXlsx ct xlsx
@@ -73,11 +74,12 @@ write2 jsondf header comments author outfile base64 = do
     then return $ byteStringToBase64 lbs "xlsx"
     else return L.empty
 
-write2pic :: String -> Bool -> String -> Maybe Text -> FilePath -> FilePath -> Bool -> IO ByteString
-write2pic jsondf header comments author imagefile outfile base64 = do
+write2pic :: String -> Bool -> String -> Maybe Text -> FilePath ->
+  (Int, Int, Int, Int) -> FilePath -> Bool -> IO ByteString
+write2pic jsondf header comments author imagefile anchor outfile base64 = do
   ct <- getPOSIXTime
   image <- L.readFile imagefile
-  let drawing = drawingPicture image
+  let drawing = drawingPicture image anchor
   let ws = set wsDrawing (Just drawing) $
             dfToSheetWithComments jsondf header comments (fromMaybe "unknown" author)
   let xlsx = def & atSheet "Sheet1" ?~ ws
