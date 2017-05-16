@@ -74,11 +74,11 @@ run = Arguments
      <*> optional (option auto
            ( long "top"
           <> short 't'
-          <> help "1st coordinate of top-left corner" ))
+          <> help "1st coordinate of top-left corner (min value: 1)" ))
      <*> optional (option auto
           ( long "left"
          <> short 'l'
-         <> help "2nd coordinate of top-left corner" ))
+         <> help "2nd coordinate of top-left corner (min value: 2)" ))
      <*> optional (option auto
           ( long "px"
          <> short 'x'
