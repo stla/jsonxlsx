@@ -7,7 +7,14 @@ import           Data.Monoid                ((<>))
 import qualified Data.Text                  as T
 import           Options.Applicative
 import           WriteXLSX
+import System.Directory (doesFileExist)
 
+getJSON :: String -> IO String
+getJSON json = do
+  isFile <- doesFileExist json
+  if isFile then
+    readFile json
+  else return json
 
 data Arguments = Arguments
   { df        :: String
@@ -25,21 +32,27 @@ data Arguments = Arguments
 writeXLSX :: Arguments -> IO()
 writeXLSX (Arguments df colnames Nothing _ Nothing _ _ _ _ outfile base64) =
   do
-    bs <- write1 df colnames outfile base64
+    json <- getJSON df
+    bs <- write1 json colnames outfile base64
     L.putStrLn bs
 writeXLSX (Arguments df colnames Nothing _
   (Just image) (Just row) (Just col) (Just px) (Just py) outfile base64) =
   do
-    bs <- write1pic df colnames image (row, col, px, py) outfile base64
+    json <- getJSON df
+    bs <- write1pic json colnames image (row, col, px, py) outfile base64
     L.putStrLn bs
 writeXLSX (Arguments df colnames (Just comments) author Nothing _ _ _ _ outfile base64) =
   do
-    bs <- write2 df colnames comments (fmap T.pack author) outfile base64
+    json <- getJSON df
+    json2 <- getJSON comments
+    bs <- write2 json colnames json2 (fmap T.pack author) outfile base64
     L.putStrLn bs
 writeXLSX (Arguments df colnames (Just comments) author
   (Just image) (Just row) (Just col) (Just px) (Just py) outfile base64) =
   do
-    bs <- write2pic df colnames comments (fmap T.pack author) image (row, col, px, py) outfile base64
+    json <- getJSON df
+    json2 <- getJSON comments
+    bs <- write2pic json colnames json2 (fmap T.pack author) image (row, col, px, py) outfile base64
     L.putStrLn bs
 
 run :: Parser Arguments
@@ -48,7 +61,7 @@ run = Arguments
           ( metavar "DATA"
          <> long "data"
          <> short 'd'
-         <> help "Data as JSON string" )
+         <> help "Data as JSON string or file" )
      <*>  switch
           ( long "header"
          <> short 'H'
@@ -58,7 +71,7 @@ run = Arguments
              ( metavar "COMMENTS"
             <> long "comments"
             <> short 'c'
-            <> help "Comments as JSON string" ))
+            <> help "Comments as JSON string or file" ))
      <*> optional
            (strOption
              ( metavar "COMMENTSAUTHOR"

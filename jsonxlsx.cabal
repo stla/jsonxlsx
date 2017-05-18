@@ -73,6 +73,7 @@ executable json2xlsx
                      , bytestring
                      , text
                      , utf8-string
+                     , directory
 
 executable xlsx2json
   if flag(exe)
