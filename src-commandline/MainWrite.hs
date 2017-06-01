@@ -1,8 +1,9 @@
 module Main
   where
+import qualified Data.ByteString.Lazy       as BL
 import qualified Data.ByteString.Lazy.Char8 as L
--- import           Data.ByteString.Lazy.Internal (packChars)
--- import           Data.ByteString.Lazy.UTF8     (fromString)
+-- import           Data.ByteString.Lazy.Internal (unpackChars)
+import           Data.ByteString.Lazy.UTF8  (toString)
 import           Data.Monoid                ((<>))
 import qualified Data.Text                  as T
 import           Options.Applicative
@@ -13,7 +14,7 @@ getJSON :: String -> IO String
 getJSON json = do
   isFile <- doesFileExist json
   if isFile then
-    readFile json
+    BL.readFile json >>= (return . toString)
   else return json
 
 data Arguments = Arguments
