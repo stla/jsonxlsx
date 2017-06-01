@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module WriteXLSX.DrawingPicture
   where
-import           Control.Lens
-import Data.ByteString.Lazy (ByteString)
 import           Codec.Xlsx
+import           Control.Lens
+import           Data.ByteString.Lazy (ByteString)
 
 defaultShapeProperties :: ShapeProperties
 defaultShapeProperties =
@@ -17,7 +17,7 @@ defaultShapeProperties =
 drawingPicture :: ByteString -> (Int, Int, Int, Int) -> Drawing
 drawingPicture image coordinates =
   Drawing {_xdrAnchors = [set anchObject pic anchor]}
-  where anchor = simpleAnchorXY (left-2, top-1) (positiveSize2D cx cy) $
+  where anchor = simpleAnchorXY (left-1, top-1) (positiveSize2D cx cy) $
                   picture DrawingElementId{unDrawingElementId = 1} fileInfo
         pic = set picShapeProperties defaultShapeProperties (_anchObject anchor)
         fileInfo = FileInfo

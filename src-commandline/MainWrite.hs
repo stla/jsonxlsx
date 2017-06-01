@@ -6,8 +6,8 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import           Data.Monoid                ((<>))
 import qualified Data.Text                  as T
 import           Options.Applicative
+import           System.Directory           (doesFileExist)
 import           WriteXLSX
-import System.Directory (doesFileExist)
 
 getJSON :: String -> IO String
 getJSON json = do
@@ -91,7 +91,7 @@ run = Arguments
      <*> optional (option auto
           ( long "left"
          <> short 'l'
-         <> help "2nd coordinate of top-left corner (min value: 2)" ))
+         <> help "2nd coordinate of top-left corner (min value: 1)" ))
      <*> optional (option auto
           ( long "px"
          <> short 'x'

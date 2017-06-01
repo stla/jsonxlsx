@@ -4,7 +4,7 @@ module WriteXLSX
 import           ByteStringToBase64
 import           Codec.Xlsx                  (atSheet, def, fromXlsx,
                                               renderStyleSheet, styleSheetFills,
-                                              xlSheets, xlStyles, wsDrawing)
+                                              wsDrawing, xlSheets, xlStyles)
 import           Codec.Xlsx.Types.StyleSheet
 import           Control.Lens                (set, (&), (?~))
 import           Data.ByteString.Lazy        (ByteString)
@@ -15,7 +15,7 @@ import           Data.Time.Clock.POSIX
 import           Empty                       (emptyFill, emptyStyleSheet,
                                               emptyXlsx, gray125Fill)
 import           WriteXLSX.DataframeToSheet
-import WriteXLSX.DrawingPicture
+import           WriteXLSX.DrawingPicture
 
 -- temporary tests
 emptyFont :: Font
