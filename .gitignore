@@ -19,7 +19,6 @@ src/TestsXLSX.hs
 src-commandline/MainRead2.hs
 src-commandline/MainReadComments.hs
 src-commandline/MainReadTypes.hs
-src-dlls
 ztemp.hs
 *.dll
 *.dll.a

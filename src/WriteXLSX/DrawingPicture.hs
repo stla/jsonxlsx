@@ -26,6 +26,6 @@ drawingPicture image coordinates =
                          _fiContentType = "image/png",
                          _fiContents =  image
                        }
-        (top, left, px, py) = coordinates
-        cx = toInteger $ 9525*px
-        cy = toInteger $ 9525*py
+        (top, left, width, height) = coordinates
+        cx = toInteger $ 9525*width
+        cy = toInteger $ 9525*height

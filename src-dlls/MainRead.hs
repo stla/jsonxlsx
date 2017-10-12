@@ -20,12 +20,12 @@ xlsx2jsonR file sheetname what header result = do
   let keys = splitOn (pack ",") (pack what)
   if length keys == 1
     then do
-      json <- sheetToJSON2 file (pack sheetname) (head keys) colnames Nothing Nothing
-      jsonC <- newCString json
+      json <- sheetnameToJSON file (pack sheetname) (head keys) colnames True Nothing Nothing
+      jsonC <- newCString (unpackChars json)
       poke result $ jsonC
     else do
-      json <- sheetToJSONlist2 file (pack sheetname) keys colnames Nothing Nothing
-      jsonC <- newCString json
+      json <- sheetnameToJSONlist file (pack sheetname) keys colnames True Nothing Nothing
+      jsonC <- newCString (unpackChars json)
       poke result $ jsonC
   -- json <- case length keys of
   --   1 -> do
